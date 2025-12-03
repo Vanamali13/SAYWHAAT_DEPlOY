@@ -35,6 +35,24 @@ router.get('/donations', [auth, adminAuth], async (req, res) => {
     }
 });
 
+// @route   GET /api/admin/history
+// @desc    Get donations older than 30 days for history
+// @access  Private (Admin only)
+router.get('/history', [auth, adminAuth], async (req, res) => {
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const oldDonations = await Donation.find({ createdAt: { $lt: thirtyDaysAgo } })
+            .populate('donor', ['name', 'email'])
+            .sort({ createdAt: -1 });
+        res.json(oldDonations);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   GET /api/admin/pending-donations
 // @desc    Get all donations awaiting approval
 // @access  Private (Admin only)

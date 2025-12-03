@@ -123,14 +123,14 @@ router.get('/dashboard', auth, async (req, res) => {
             // This case might happen if the user was deleted but the token is still valid
             return res.status(404).json({ msg: 'User not found' });
         }
-        
+
         // Get stats
         const donations = await Donation.find({ donor_id: user._id });
         const stats = {
             totalDonations: donations.length,
             totalAmount: donations.reduce((sum, d) => sum + (d.amount || 0), 0),
             // These stats might need more complex queries in the future
-            peopleHelped: 0, 
+            peopleHelped: 0,
             confirmedDeliveries: 0,
         };
 
@@ -142,10 +142,23 @@ router.get('/dashboard', auth, async (req, res) => {
 
         res.json({
             // The frontend expects a 'donor' object, so we'll alias 'user'
-            donor: user, 
+            donor: user,
             stats,
             recentDonations,
         });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Server Error' });
+    }
+});
+
+// GET /api/users/donations - Get all donations for the current user
+router.get('/donations', auth, async (req, res) => {
+    try {
+        const donations = await Donation.find({ donor: req.user.id })
+            .sort({ createdAt: -1 })
+            .populate('receiver_id'); // Keep populating for now, though receiver might be null
+        res.json(donations);
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Server Error' });

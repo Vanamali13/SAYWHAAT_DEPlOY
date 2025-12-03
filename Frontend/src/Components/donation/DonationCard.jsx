@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Calendar, MapPin, Package, Eye } from "lucide-react";
+import { Calendar, Package, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils/utils";
@@ -14,20 +14,19 @@ const statusColors = {
   confirmed: "bg-purple-900/30 text-purple-400 border-purple-800"
 };
 
-export default function DonationCard({ donation, receiver, proofCount }) {
+export default function DonationCard({ donation, proofCount }) {
   return (
     <Card className="hover:shadow-xl transition-all duration-300 backdrop-blur-sm bg-zinc-900 border-zinc-800">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-semibold text-lg text-white">{receiver?.full_name || "Unknown Receiver"}</h3>
-            <p className="text-sm text-zinc-400 flex items-center gap-1 mt-1">
-              <MapPin className="w-3 h-3" />
-              {receiver?.address || "Address not available"}
+            <h3 className="font-semibold text-lg text-white">Donation #{donation.donationId || (donation._id ? donation._id.slice(-6).toUpperCase() : 'N/A')}</h3>
+            <p className="text-sm text-zinc-400 mt-1">
+              {donation.donation_type === 'money' ? 'Monetary Donation' : 'Item Donation'}
             </p>
           </div>
-          <Badge className={`${statusColors[donation.status]} border`}>
-            {donation.status.replace('_', ' ')}
+          <Badge className={`${statusColors[donation.status] || 'bg-zinc-800 text-zinc-400 border-zinc-700'} border`}>
+            {donation.status ? donation.status.replace('_', ' ') : 'Unknown'}
           </Badge>
         </div>
       </CardHeader>
@@ -39,7 +38,11 @@ export default function DonationCard({ donation, receiver, proofCount }) {
           </span>
           <span className="flex items-center gap-2 text-zinc-400">
             <Calendar className="w-4 h-4" />
-            {format(new Date(donation.created_date), "MMM d, yyyy")}
+            {donation.created_date && !isNaN(new Date(donation.created_date).getTime())
+              ? format(new Date(donation.created_date), "MMM d, yyyy")
+              : (donation.createdAt && !isNaN(new Date(donation.createdAt).getTime())
+                ? format(new Date(donation.createdAt), "MMM d, yyyy")
+                : "Date N/A")}
           </span>
         </div>
 
@@ -69,7 +72,7 @@ export default function DonationCard({ donation, receiver, proofCount }) {
           </Badge>
         )}
 
-        <Link to={createPageUrl(`DonationDetails?id=${donation.id}`)}>
+        <Link to={createPageUrl(`DonationDetails?id=${donation._id || donation.id}`)}>
           <Button variant="outline" className="w-full mt-2 group border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
             <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
             View Details

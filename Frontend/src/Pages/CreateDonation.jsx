@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../api/apiClient";
 import { AuthContext } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
@@ -18,21 +18,12 @@ export default function CreateDonation() {
   const { user } = useContext(AuthContext);
 
   const [formData, setFormData] = useState({
-    receiver_id: "",
     donation_type: "garments",
     amount: "",
     items: [{ name: "", quantity: 1, category: "garments" }],
     garment_type: "",
     delivery_notes: "",
     scheduled_delivery: ""
-  });
-
-  const { data: verifiedReceivers = [] } = useQuery({
-    queryKey: ['verifiedReceivers'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/receivers/verified');
-      return data;
-    },
   });
 
   const [feedback, setFeedback] = useState({ type: '', message: '' });
@@ -75,10 +66,6 @@ export default function CreateDonation() {
       setFeedback({ type: 'error', message: 'You must be logged in to donate.' });
       return;
     }
-    if (!formData.receiver_id) {
-      setFeedback({ type: 'error', message: 'Please select a receiver.' });
-      return;
-    }
 
     const finalData = {
       ...formData,
@@ -110,20 +97,6 @@ export default function CreateDonation() {
             )}
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="receiver" className="text-zinc-400">Select Receiver</Label>
-                  <Select
-                    id="receiver"
-                    onChange={e => setFormData(prev => ({ ...prev, receiver_id: e.target.value }))}
-                    value={formData.receiver_id}
-                    placeholder="Choose a verified receiver..."
-                    className="bg-zinc-950 border-zinc-800 text-white"
-                  >
-                    {verifiedReceivers.map(r => (
-                      <SelectItem key={r._id} value={r._id}>{r.full_name} - {r.address}</SelectItem>
-                    ))}
-                  </Select>
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="donation_type" className="text-zinc-400">Donation Type</Label>
                   <Select

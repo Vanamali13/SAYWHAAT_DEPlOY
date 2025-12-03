@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Link, useLocation, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { createPageUrl } from "./utils/utils";
-import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut } from "lucide-react";
+import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History } from "lucide-react";
 import { Sidebar } from "./Components/ui/sidebar";
 import HomePage from "./Pages/home";
 import AdminDashboard from "./Pages/AdminDashboard";
@@ -16,7 +16,8 @@ import DonationDetails from "./Pages/DonationDetails";
 import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
 import { AuthContext } from "./context/authContext";
-import DonationRequests from "./Pages/DonationRequests"; // Import the new page
+import DonationRequests from "./Pages/DonationRequests";
+import DonationHistory from "./Pages/DonationHistory";
 
 import { Button } from "./Components/ui/button";
 
@@ -24,6 +25,7 @@ import { Button } from "./Components/ui/button";
 const donorNavigationItems = [
   { title: "Donor Dashboard", url: createPageUrl("donordashboard"), icon: LayoutDashboard, component: DonorDashboard },
   { title: "Create Donation", url: createPageUrl("createdonation"), icon: Gift, component: CreateDonation },
+  { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
 ];
 
 const batchStaffNavigationItems = [
@@ -35,6 +37,7 @@ const batchStaffNavigationItems = [
 const adminNavigationItems = [
   { title: "Admin Dashboard", url: createPageUrl("admin-dashboard"), icon: LayoutDashboard, component: AdminDashboard },
   { title: "Donation Requests", url: createPageUrl("donation-requests"), icon: ListChecks, component: DonationRequests },
+  { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
   { title: "Donors List", url: createPageUrl("donorslist"), icon: Users, component: DonorsList },
   { title: "Batch Staff List", url: createPageUrl("batchstafflist"), icon: Users, component: BatchStaffList },
 ];
@@ -166,6 +169,7 @@ export default function Layout() {
             <Route path="/donordashboard" element={user ? <DonorDashboard /> : <Navigate to="/login" replace />} />
             <Route path="/admin-dashboard" element={user && user.role === 'Administrator' ? <AdminDashboard /> : <Navigate to="/login" replace />} />
             <Route path="/donation-requests" element={user && user.role === 'Administrator' ? <DonationRequests /> : <Navigate to="/login" replace />} />
+            <Route path="/donation-history" element={user ? <DonationHistory /> : <Navigate to="/login" replace />} />
             <Route path="/donorslist" element={user && user.role === 'Administrator' ? <DonorsList /> : <Navigate to="/login" replace />} />
             <Route path="/batchstafflist" element={user && user.role === 'Administrator' ? <BatchStaffList /> : <Navigate to="/login" replace />} />
             <Route path="/batch-staff-dashboard" element={user && user.role === 'Batch staff' ? <BatchStaffDashboard /> : <Navigate to="/login" replace />} />
