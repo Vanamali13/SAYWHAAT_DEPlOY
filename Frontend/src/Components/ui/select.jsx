@@ -13,7 +13,7 @@ const useSelect = () => {
   return context;
 };
 
-const Select = ({ children, value, onChange, placeholder }) => {
+const Select = ({ children, value, onChange, placeholder, className }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
   const options = React.Children.toArray(children).map(child => ({
@@ -52,8 +52,9 @@ const Select = ({ children, value, onChange, placeholder }) => {
         <button
           type="button"
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-left",
-            !selectedOption && "text-gray-500"
+            "flex h-10 w-full items-center justify-between rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-left text-white",
+            !selectedOption && "text-zinc-500",
+            className
           )}
           onClick={() => setIsOpen(!isOpen)}
           aria-haspopup="listbox"
@@ -63,7 +64,7 @@ const Select = ({ children, value, onChange, placeholder }) => {
           <ChevronDown className={`h-4 w-4 opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         {isOpen && (
-          <div className="absolute z-10 mt-2 w-full rounded-md border bg-white shadow-lg">
+          <div className="absolute z-10 mt-2 w-full rounded-md border border-zinc-800 bg-zinc-900 shadow-lg">
             <div className="py-1" role="listbox">
               {children}
             </div>
@@ -81,15 +82,15 @@ const SelectItem = ({ children, value }) => {
   return (
     <div
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-gray-100 focus:bg-gray-100",
-        isSelected && "font-semibold"
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-zinc-800 focus:bg-zinc-800 text-zinc-300 hover:text-white",
+        isSelected && "font-semibold text-white bg-zinc-800"
       )}
       onClick={() => handleSelect(value)}
       role="option"
       aria-selected={isSelected}
     >
       {isSelected && (
-        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center text-white">
           <Check className="h-4 w-4" />
         </span>
       )}

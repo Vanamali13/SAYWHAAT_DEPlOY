@@ -7,7 +7,8 @@ import { Button } from "../Components/ui/button";
 import { Badge } from "../Components/ui/badge";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils/utils";
-import { User, Mail, Phone, Award, Plus, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Award, Plus, Loader2, LayoutDashboard } from "lucide-react";
+import { format } from 'date-fns';
 
 import DonorRegistrationCard from "../Components/donor/DonorRegistrationCard";
 import ImpactStats from "../Components/donor/ImpactStats";
@@ -39,17 +40,17 @@ const DonorDashboard = () => {
 
   if (isLoading || !dashboardData) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen p-6 flex items-center justify-center bg-zinc-950">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
       </div>
     );
   }
-  
+
   const { needsRegistration, donor, stats, recentDonations } = dashboardData;
 
   if (needsRegistration) {
     return (
-      <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 to-orange-50">
+      <div className="min-h-screen p-6 bg-zinc-950">
         <div className="max-w-2xl mx-auto pt-12">
           {/* The registration card will now call our local backend */}
           <DonorRegistrationCard onComplete={refetch} />
@@ -59,42 +60,77 @@ const DonorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen p-6 lg:p-8 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto space-y-8">
         {flash && (
-          <div className={`p-3 rounded-lg border ${flash.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+          <div className={`p-4 rounded-lg border flex items-center gap-3 ${flash.type === 'success' ? 'bg-emerald-900/20 border-emerald-800 text-emerald-400' : 'bg-red-900/20 border-red-800 text-red-400'}`}>
+            <div className={`w-2 h-2 rounded-full ${flash.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`} />
             {flash.message}
           </div>
         )}
+
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-zinc-900">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-              Welcome back, {user.full_name}
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+              Dashboard
             </h1>
-            <p className="text-gray-600 mt-2">Track your impact and manage your donations</p>
+            <p className="text-zinc-400 mt-2 flex items-center gap-2">
+              Welcome back, <span className="text-zinc-200 font-medium">{user.full_name}</span>
+            </p>
           </div>
-          <Link to={createPageUrl("CreateDonation")}>
-            <Button size="lg" className="px-6 py-3 text-white bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700 shadow-lg">
-              <Plus className="w-6 h-6 mr-3" />
-              New Donation
-            </Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Badge variant="outline" className="hidden md:flex px-4 py-1.5 text-sm bg-zinc-900 border-zinc-800 text-zinc-400 font-normal">
+              {format(new Date(), 'EEEE, MMMM do, yyyy')}
+            </Badge>
+            <Link to={createPageUrl("CreateDonation")}>
+              <Button size="lg" className="px-6 py-2.5 text-black bg-white hover:bg-zinc-200 shadow-lg shadow-zinc-900/20 transition-all hover:scale-105 active:scale-95">
+                <Plus className="w-5 h-5 mr-2" />
+                New Donation
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Donor Info Card */}
-        <Card className="backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Award className="w-6 h-6 text-blue-600" /> Donor Profile</CardTitle>
+        <Card className="backdrop-blur-sm bg-zinc-900/50 border-zinc-800 shadow-lg">
+          <CardHeader className="border-b border-zinc-800/50 pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-medium text-zinc-200">
+              <Award className="w-5 h-5 text-purple-500" /> Donor Profile
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="flex items-center gap-3"><User className="w-5 h-5 text-gray-400" /><div><p className="text-sm text-gray-500">Name</p><p className="font-medium">{donor.name}</p></div></div>
-              <div className="flex items-center gap-3"><Mail className="w-5 h-5 text-gray-400" /><div><p className="text-sm text-gray-500">Email</p><p className="font-medium">{donor.email}</p></div></div>
-              <div className="flex items-center gap-3"><Phone className="w-5 h-5 text-gray-400" /><div><p className="text-sm text-gray-500">Phone</p><p className="font-medium">{donor.phone_number || 'N/A'}</p></div></div>
+          <CardContent className="pt-6">
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <User className="w-5 h-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-0.5">Name</p>
+                  <p className="font-medium text-zinc-200">{donor.name}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <Mail className="w-5 h-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-0.5">Email</p>
+                  <p className="font-medium text-zinc-200">{donor.email}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <Phone className="w-5 h-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-0.5">Phone</p>
+                  <p className="font-medium text-zinc-200">{donor.phone_number || 'N/A'}</p>
+                </div>
+              </div>
             </div>
-            <div className="mt-6 pt-6 border-t">
-              <Badge className="bg-gradient-to-r from-blue-600 to-orange-600 text-white text-base px-4 py-2">Donor ID: {donor.donorId}</Badge>
+            <div className="mt-6 pt-4 border-t border-zinc-800/50 flex justify-end">
+              <span className="text-xs text-zinc-600 font-mono">ID: {donor.donorId}</span>
             </div>
           </CardContent>
         </Card>
@@ -103,11 +139,14 @@ const DonorDashboard = () => {
         <ImpactStats stats={stats} />
 
         {/* Recent Donations */}
-        <Card className="backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
-          <CardHeader>
-            <CardTitle>Recent Donations</CardTitle>
+        <Card className="backdrop-blur-sm bg-zinc-900/50 border-zinc-800 shadow-xl overflow-hidden">
+          <CardHeader className="border-b border-zinc-800 bg-zinc-900/50">
+            <CardTitle className="text-xl text-white flex items-center gap-2">
+              <LayoutDashboard className="w-5 h-5 text-blue-500" />
+              Recent Donations
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {recentDonations && recentDonations.length > 0 ? (
               <div className="space-y-4">
                 {recentDonations.map(donation => (
@@ -115,7 +154,18 @@ const DonorDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-8">You haven't made any donations yet.</p>
+              <div className="text-center py-12 bg-zinc-950/30 rounded-xl border border-zinc-800/50 border-dashed">
+                <div className="p-4 bg-zinc-900/50 rounded-full inline-block mb-4">
+                  <Plus className="w-8 h-8 text-zinc-600" />
+                </div>
+                <p className="text-zinc-500 font-medium">No donations yet</p>
+                <p className="text-zinc-600 text-sm mt-1 mb-6">Start your journey by making your first donation today.</p>
+                <Link to={createPageUrl("CreateDonation")}>
+                  <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+                    Make a Donation
+                  </Button>
+                </Link>
+              </div>
             )}
           </CardContent>
         </Card>

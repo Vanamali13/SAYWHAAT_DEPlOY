@@ -19,23 +19,22 @@ export default function CreateDonation() {
 
   const [formData, setFormData] = useState({
     receiver_id: "",
-    donation_type: "food",
+    donation_type: "garments",
     amount: "",
-    items: [{ name: "", quantity: 1, category: "food" }],
+    items: [{ name: "", quantity: 1, category: "garments" }],
+    garment_type: "",
     delivery_notes: "",
     scheduled_delivery: ""
   });
-  
-  // NEW: Fetch verified receivers from your backend
+
   const { data: verifiedReceivers = [] } = useQuery({
     queryKey: ['verifiedReceivers'],
     queryFn: async () => {
-        const { data } = await apiClient.get('/receivers/verified');
-        return data;
+      const { data } = await apiClient.get('/receivers/verified');
+      return data;
     },
   });
 
-  // NEW: Use a mutation that calls your local backend
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const createDonationMutation = useMutation({
     mutationFn: (donationData) => apiClient.post('/donations', donationData),
@@ -45,7 +44,7 @@ export default function CreateDonation() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['donorDashboard'] });
       setFeedback({ type: 'success', message: 'Donation created successfully!' });
-      try { alert('Donation created successfully!'); } catch (_) {}
+      try { alert('Donation created successfully!'); } catch (_) { }
       setTimeout(() => {
         setFeedback({ type: '', message: '' });
         navigate(createPageUrl("DonorDashboard"), {
@@ -62,17 +61,15 @@ export default function CreateDonation() {
     }
   });
 
-  const handleAddItem = () => setFormData(prev => ({ ...prev, items: [...prev.items, { name: "", quantity: 1, category: "food" }] }));
+  const handleAddItem = () => setFormData(prev => ({ ...prev, items: [...prev.items, { name: "", quantity: 1, category: "garments" }] }));
   const handleRemoveItem = (index) => setFormData(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== index) }));
   const handleItemChange = (index, field, value) => {
     const newItems = formData.items.map((item, i) => i === index ? { ...item, [field]: value } : item);
-    setFormData(prev => ({...prev, items: newItems}));
+    setFormData(prev => ({ ...prev, items: newItems }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('[CreateDonation] Submit clicked', { user, formData });
-    // Fallback immediate UX feedback
     setFeedback({ type: 'info', message: 'Submitting donation…' });
     if (!user) {
       setFeedback({ type: 'error', message: 'You must be logged in to donate.' });
@@ -82,39 +79,45 @@ export default function CreateDonation() {
       setFeedback({ type: 'error', message: 'Please select a receiver.' });
       return;
     }
+
     const finalData = {
       ...formData,
-      amount: formData.amount ? parseFloat(formData.amount) : null,
-      items: formData.donation_type !== "funds" ? formData.items.filter(item => item.name) : [],
+      amount: formData.donation_type === 'money' && formData.amount ? parseFloat(formData.amount) : null,
+      items: (formData.donation_type !== 'money') ? formData.items.filter(item => item.name) : [],
+      garment_type: formData.donation_type === 'garments' ? formData.garment_type : null,
     };
-    console.log('[CreateDonation] Mutating with payload', finalData);
+
+    if (formData.donation_type !== 'money') delete finalData.amount;
+    if (formData.donation_type !== 'garments') delete finalData.garment_type;
+    if (formData.donation_type === 'money') delete finalData.items;
+
     createDonationMutation.mutate(finalData);
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen p-6 bg-zinc-950">
       <div className="max-w-4xl mx-auto">
-        <Card className="backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
+        <Card className="backdrop-blur-sm bg-zinc-900 border-zinc-800 shadow-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-3xl">
-              <Gift className="w-8 h-8 text-blue-600" />
+            <CardTitle className="flex items-center gap-3 text-3xl text-white">
+              <Gift className="w-8 h-8 text-white" />
               Create a New Donation
             </CardTitle>
           </CardHeader>
           <CardContent>
             {feedback.message && (
-              <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${feedback.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{feedback.message}</div>
+              <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${feedback.type === 'success' ? 'bg-green-900/30 text-green-400 border border-green-800' : 'bg-red-900/30 text-red-400 border border-red-800'}`}>{feedback.message}</div>
             )}
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
-              {/* ...existing code... */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="receiver">Select Receiver</Label>
+                  <Label htmlFor="receiver" className="text-zinc-400">Select Receiver</Label>
                   <Select
                     id="receiver"
                     onChange={e => setFormData(prev => ({ ...prev, receiver_id: e.target.value }))}
                     value={formData.receiver_id}
                     placeholder="Choose a verified receiver..."
+                    className="bg-zinc-950 border-zinc-800 text-white"
                   >
                     {verifiedReceivers.map(r => (
                       <SelectItem key={r._id} value={r._id}>{r.full_name} - {r.address}</SelectItem>
@@ -122,54 +125,88 @@ export default function CreateDonation() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="donation_type">Donation Type</Label>
+                  <Label htmlFor="donation_type" className="text-zinc-400">Donation Type</Label>
                   <Select
                     id="donation_type"
                     onChange={e => setFormData(prev => ({ ...prev, donation_type: e.target.value }))}
                     value={formData.donation_type}
                     placeholder="Select a donation type"
+                    className="bg-zinc-950 border-zinc-800 text-white"
                   >
-                    <SelectItem value="food">Food</SelectItem>
-                    <SelectItem value="clothing">Clothing</SelectItem>
-                    <SelectItem value="funds">Funds</SelectItem>
+                    <SelectItem value="garments">Garments</SelectItem>
+                    <SelectItem value="money">Money</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </Select>
                 </div>
               </div>
-              {/* ...existing code... */}
-              {formData.donation_type === 'funds' ? (
+
+              {formData.donation_type === 'garments' && (
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount ($)</Label>
+                  <Label htmlFor="garment_type" className="text-zinc-400">Type of Garments</Label>
+                  <Select
+                    id="garment_type"
+                    onChange={e => setFormData(prev => ({ ...prev, garment_type: e.target.value }))}
+                    value={formData.garment_type}
+                    placeholder="Select who these garments are for"
+                    className="bg-zinc-950 border-zinc-800 text-white"
+                  >
+                    <SelectItem value="children">Children</SelectItem>
+                    <SelectItem value="old_people">Old People</SelectItem>
+                  </Select>
+                </div>
+              )}
+
+              {formData.donation_type === 'money' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="amount" className="text-zinc-400">Amount ($)</Label>
                   <Input
                     id="amount"
                     type="number"
                     placeholder="e.g., 50.00"
                     value={formData.amount}
                     onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                    className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
                   />
                 </div>
-              ) : (
+              ) : formData.donation_type === 'garments' ? (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <Label>Items to Donate</Label>
-                    <Button type="button" variant="outline" onClick={handleAddItem}>
+                    <Label className="text-zinc-400">Items to Donate</Label>
+                    <Button type="button" variant="outline" onClick={handleAddItem} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
                       <Plus className="w-4 h-4 mr-2" /> Add Item
                     </Button>
                   </div>
                   {formData.items.map((item, index) => (
-                    <div key={index} className="flex items-end gap-4 p-4 bg-gray-50 rounded-lg border">
+                    <div key={index} className="flex items-end gap-4 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
                       <div className="grid grid-cols-3 gap-4 flex-1">
                         <div className="space-y-2">
-                          <Label htmlFor={`item-name-${index}`} className="text-sm">Item Name</Label>
-                          <Input id={`item-name-${index}`} value={item.name} onChange={(e) => handleItemChange(index, 'name', e.target.value)} placeholder="e.g., Rice Bag" />
+                          <Label htmlFor={`item-name-${index}`} className="text-sm text-zinc-400">Item Name</Label>
+                          <Input
+                            id={`item-name-${index}`}
+                            value={item.name}
+                            onChange={(e) => handleItemChange(index, 'name', e.target.value)}
+                            placeholder="e.g., Rice Bag"
+                            className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor={`item-quantity-${index}`} className="text-sm">Quantity</Label>
-                          <Input id={`item-quantity-${index}`} type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} />
+                          <Label htmlFor={`item-quantity-${index}`} className="text-sm text-zinc-400">Quantity</Label>
+                          <Input
+                            id={`item-quantity-${index}`}
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                            className="bg-zinc-950 border-zinc-800 text-white"
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor={`item-category-${index}`} className="text-sm">Category</Label>
-                          <Input id={`item-category-${index}`} value={item.category} onChange={(e) => handleItemChange(index, 'category', e.target.value)} />
+                          <Label htmlFor={`item-category-${index}`} className="text-sm text-zinc-400">Category</Label>
+                          <Input
+                            id={`item-category-${index}`}
+                            value={item.category}
+                            onChange={(e) => handleItemChange(index, 'category', e.target.value)}
+                            className="bg-zinc-950 border-zinc-800 text-white"
+                          />
                         </div>
                       </div>
                       <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveItem(index)}>
@@ -178,31 +215,33 @@ export default function CreateDonation() {
                     </div>
                   ))}
                 </div>
-              )}
-              {/* ...existing code... */}
+              ) : null}
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="scheduled_delivery">Scheduled Delivery Date</Label>
+                  <Label htmlFor="scheduled_delivery" className="text-zinc-400">Scheduled Delivery Date</Label>
                   <Input
                     id="scheduled_delivery"
                     type="date"
                     value={formData.scheduled_delivery}
                     onChange={(e) => setFormData(prev => ({ ...prev, scheduled_delivery: e.target.value }))}
+                    className="bg-zinc-950 border-zinc-800 text-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="delivery_notes">Delivery Notes</Label>
+                  <Label htmlFor="delivery_notes" className="text-zinc-400">Delivery Notes</Label>
                   <Textarea
                     id="delivery_notes"
                     placeholder="Any special instructions for delivery..."
                     value={formData.delivery_notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, delivery_notes: e.target.value }))}
+                    className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
                   />
                 </div>
               </div>
-              {/* ...existing code... */}
+
               <div className="flex justify-end">
-                <Button type="submit" size="lg" className="px-6 py-3 text-white bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700 shadow-lg" disabled={createDonationMutation.isLoading} onClick={() => console.log('[CreateDonation] Submit button clicked')}>
+                <Button type="submit" size="lg" className="px-6 py-3 text-black bg-white hover:bg-zinc-200 shadow-lg" disabled={createDonationMutation.isLoading} onClick={() => console.log('[CreateDonation] Submit button clicked')}>
                   {createDonationMutation.isLoading ? (
                     <Loader2 className="w-6 h-6 mr-3 animate-spin" />
                   ) : (

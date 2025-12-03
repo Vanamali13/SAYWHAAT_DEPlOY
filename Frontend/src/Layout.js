@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Link, useLocation, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { createPageUrl } from "./utils/utils";
-import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks } from "lucide-react";
+import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut } from "lucide-react";
 import { Sidebar } from "./Components/ui/sidebar";
 import HomePage from "./Pages/home";
 import AdminDashboard from "./Pages/AdminDashboard";
@@ -76,48 +76,47 @@ export default function Layout() {
 
   return (
     <div className={`min-h-screen w-full ${showSidebar ? 'flex' : ''}`}>
-      <div className={`${!showSidebar ? 'bg-gradient-to-br from-blue-50 via-white to-orange-50' : ''} absolute inset-0 -z-10`} />
+      <div className={`${!showSidebar ? 'bg-zinc-950' : ''} absolute inset-0 -z-10`} />
       {showSidebar ? (
-        <Sidebar className="border-r border-gray-200/80 backdrop-blur-sm bg-white/70 flex flex-col h-screen">
+        <Sidebar className="border-r border-zinc-800 bg-zinc-900/95 backdrop-blur-sm flex flex-col h-screen">
           <div className="p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-700">
                 <Heart className="w-6 h-6 text-white fill-white" />
               </div>
               <div>
-                <h2 className="font-bold text-lg bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-                  COSWO
+                <h2 className="font-bold text-lg text-white">
+                  Say Whatt
                 </h2>
-                <p className="text-xs text-gray-500">Transparent Giving</p>
+                <p className="text-xs text-zinc-400">Transparent Giving</p>
               </div>
             </div>
           </div>
           <div className="flex-1 flex flex-col justify-between">
             <div className="p-3">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-2">
+              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider px-3 py-2">
                 Navigation
               </p>
               <div>
                 <div>
                   {sidebarItems.map((item) => (
                     <div key={item.title}>
-                      <Link to={item.url} className={`mb-1 transition-all duration-200 rounded-xl flex items-center gap-3 px-4 py-3 ${
-                          (location.pathname === item.url || (location.pathname === '/' && item.url === '/home'))
-                            ? 'bg-gradient-to-r from-blue-500 to-orange-500 text-white shadow-md' 
-                            : 'hover:bg-gray-100'
+                      <Link to={item.url} className={`mb-1 transition-all duration-200 rounded-xl flex items-center gap-3 px-4 py-3 ${(location.pathname === item.url || (location.pathname === '/' && item.url === '/home'))
+                        ? 'bg-zinc-800 text-white shadow-md border border-zinc-700'
+                        : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100'
                         }`}>
-                          <item.icon className="w-5 h-5" />
-                          <span className="font-medium">{item.title}</span>
+                        <item.icon className="w-5 h-5" />
+                        <span className="font-medium">{item.title}</span>
                       </Link>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="p-4 border-t border-gray-200/80">
+            <div className="p-4 border-t border-zinc-800">
               <Button
-                variant="outline"
-                className="w-full font-semibold text-red-600 hover:bg-red-50"
+                variant="ghost"
+                className="w-full justify-start font-semibold text-red-500 hover:bg-red-950/30 hover:text-red-400 transition-all"
                 onClick={() => {
                   if (window.confirm('Are you sure you want to logout?')) {
                     logout();
@@ -125,36 +124,37 @@ export default function Layout() {
                   }
                 }}
               >
+                <LogOut className="w-5 h-5 mr-3" />
                 Logout
               </Button>
             </div>
           </div>
         </Sidebar>
       ) : (
-        <header className="sticky top-0 z-20 w-full bg-white/80 backdrop-blur-md border-b border-gray-200/80">
-            <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-                <Link to={createPageUrl("home")} className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                        <Heart className="w-6 h-6 text-white fill-white" />
-                    </div>
-                    <div>
-                        <h2 className="font-bold text-lg bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-                            COSWO
-                        </h2>
-                        <p className="text-xs text-gray-500">Transparent Giving</p>
-                    </div>
+        <header className="sticky top-0 z-20 w-full bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800">
+          <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+            <Link to={createPageUrl("home")} className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-700">
+                <Heart className="w-6 h-6 text-white fill-white" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg text-white">
+                  Say Whatt
+                </h2>
+                <p className="text-xs text-zinc-400">Transparent Giving</p>
+              </div>
+            </Link>
+            {(location.pathname === "/" || location.pathname === "/home") && (
+              <div className="flex items-center gap-4">
+                <Link to="/login">
+                  <Button variant="outline" className="font-semibold px-4 py-2 text-md border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white bg-transparent">Login</Button>
                 </Link>
-                {(location.pathname === "/" || location.pathname === "/home") && (
-                <div className="flex items-center gap-4">
-                    <Link to="/login">
-                        <Button variant="outline" className="font-semibold px-4 py-2 text-md">Login</Button>
-                    </Link>
-                    <Link to="/signup">
-                        <Button className="font-semibold bg-gradient-to-r from-blue-600 to-orange-600 text-white px-4 py-2 text-md">Sign Up</Button>
-                    </Link>
-                </div>
-                )}
-            </div>
+                <Link to="/signup">
+                  <Button className="font-semibold bg-white text-black hover:bg-zinc-200 px-4 py-2 text-md">Sign Up</Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </header>
       )}
 

@@ -2,11 +2,11 @@ import React from 'react';
 
 const Dialog = ({ children }) => <div>{children}</div>;
 const DialogTrigger = ({ children }) => <div>{children}</div>;
-const DialogContent = ({ children }) => <div>{children}</div>;
-const DialogHeader = ({ children }) => <div>{children}</div>;
-const DialogTitle = ({ children }) => <h5>{children}</h5>;
-const DialogDescription = ({ children }) => <p>{children}</p>;
-const DialogFooter = ({ children }) => <div>{children}</div>;
+const DialogContent = ({ children }) => <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-zinc-800 bg-zinc-950 p-6 shadow-lg duration-200 sm:rounded-lg md:w-full">{children}</div>;
+const DialogHeader = ({ children }) => <div className="flex flex-col space-y-1.5 text-center sm:text-left">{children}</div>;
+const DialogTitle = ({ children }) => <h3 className="text-lg font-semibold leading-none tracking-tight text-zinc-100">{children}</h3>;
+const DialogDescription = ({ children }) => <p className="text-sm text-zinc-400">{children}</p>;
+const DialogFooter = ({ children }) => <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">{children}</div>;
 
 export {
   Dialog,

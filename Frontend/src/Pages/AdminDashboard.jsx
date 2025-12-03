@@ -4,8 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Badge } from "../Components/ui/badge";
 import { Button } from "../Components/ui/button";
-import { Loader2, User, Mail, Phone, Award, Users, Package, CheckCircle, TrendingUp, ThumbsUp, ThumbsDown } from "lucide-react";
-import apiClient from "../api/apiClient"; // Ensure you have this
+import { Loader2, User, Mail, Phone, Award, Users, Package, CheckCircle, TrendingUp, ThumbsUp, ThumbsDown, LayoutDashboard } from "lucide-react";
+import apiClient from "../api/apiClient";
 import { format } from 'date-fns';
 import { getAdminStats } from "../api/adminApi";
 
@@ -27,92 +27,123 @@ const rejectDonation = async (donationId) => {
 
 
 const PendingDonations = () => {
-    const queryClient = useQueryClient();
-    const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
+  const [error, setError] = useState(null);
 
-    const { data: pendingDonations, isLoading } = useQuery({
-        queryKey: ["pendingDonations"],
-        queryFn: getPendingDonations,
-    });
+  const { data: pendingDonations, isLoading } = useQuery({
+    queryKey: ["pendingDonations"],
+    queryFn: getPendingDonations,
+  });
 
-    const approveMutation = useMutation({
-        mutationFn: approveDonation,
-        onSuccess: () => {
-            queryClient.invalidateQueries(["pendingDonations"]);
-            queryClient.invalidateQueries(["admin-dashboard-stats"]); // Also refresh stats
-        },
-        onError: (err) => setError(err.response?.data?.msg || "Failed to approve."),
-    });
+  const approveMutation = useMutation({
+    mutationFn: approveDonation,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["pendingDonations"]);
+      queryClient.invalidateQueries(["admin-dashboard-stats"]); // Also refresh stats
+    },
+    onError: (err) => setError(err.response?.data?.msg || "Failed to approve."),
+  });
 
-    const rejectMutation = useMutation({
-        mutationFn: rejectDonation,
-        onSuccess: () => {
-            queryClient.invalidateQueries(["pendingDonations"]);
-        },
-        onError: (err) => setError(err.response?.data?.msg || "Failed to reject."),
-    });
+  const rejectMutation = useMutation({
+    mutationFn: rejectDonation,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["pendingDonations"]);
+    },
+    onError: (err) => setError(err.response?.data?.msg || "Failed to reject."),
+  });
 
-    if (isLoading) {
-        return <div className="flex justify-center"><Loader2 className="animate-spin" /></div>;
-    }
+  if (isLoading) {
+    return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-zinc-400" /></div>;
+  }
 
-    return (
-        <Card className="backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
-            <CardHeader>
-                <CardTitle>Pending Donation Approvals</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {error && <p className="text-red-500 mb-4">{error}</p>}
-                {pendingDonations && pendingDonations.length > 0 ? (
-                    <div className="space-y-6">
-                        {pendingDonations.map((donation) => (
-                            <div key={donation._id} className="p-4 border rounded-lg bg-gray-50">
-                                <div className="grid md:grid-cols-3 gap-4">
-                                    <div>
-                                        <h3 className="font-semibold">Donor Details</h3>
-                                        <p><strong>Name:</strong> {donation.donor.name}</p>
-                                        <p><strong>Email:</strong> {donation.donor.email}</p>
-                                        <p><strong>Phone:</strong> {donation.donor.phone_number || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold">Donation Details</h3>
-                                        <p><strong>Type:</strong> {donation.donation_type}</p>
-                                        {donation.amount && <p><strong>Amount:</strong> ${donation.amount}</p>}
-                                        {donation.items && donation.items.length > 0 && (
-                                            <div><strong>Items:</strong> {donation.items.map(i => `${i.name} (x${i.quantity})`).join(', ')}</div>
-                                        )}
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Submitted on: {format(new Date(donation.createdAt), 'PPP')}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center justify-end space-x-3">
-                                        <Button
-                                            size="sm"
-                                            className="bg-green-500 hover:bg-green-600"
-                                            onClick={() => approveMutation.mutate(donation._id)}
-                                            disabled={approveMutation.isPending}
-                                        >
-                                            <ThumbsUp className="w-4 h-4 mr-2" /> Approve
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="destructive"
-                                            onClick={() => rejectMutation.mutate(donation._id)}
-                                            disabled={rejectMutation.isPending}
-                                        >
-                                            <ThumbsDown className="w-4 h-4 mr-2" /> Reject
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+  return (
+    <Card className="backdrop-blur-sm bg-zinc-900/50 border-zinc-800 shadow-xl overflow-hidden">
+      <CardHeader className="border-b border-zinc-800 bg-zinc-900/50">
+        <CardTitle className="text-xl text-white flex items-center gap-2">
+          <LayoutDashboard className="w-5 h-5 text-blue-500" />
+          Pending Donation Approvals
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        {error && <p className="text-red-400 bg-red-900/20 p-3 rounded-md mb-4 border border-red-900/50">{error}</p>}
+        {pendingDonations && pendingDonations.length > 0 ? (
+          <div className="grid gap-4">
+            {pendingDonations.map((donation) => (
+              <div key={donation._id} className="group p-5 border border-zinc-800 rounded-xl bg-zinc-950/50 hover:bg-zinc-900/80 transition-all duration-200 hover:border-zinc-700 shadow-sm">
+                <div className="flex flex-col lg:flex-row gap-6 justify-between">
+                  <div className="space-y-4 flex-1">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
+                        <User className="w-5 h-5 text-zinc-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-white text-lg">{donation.donor.name}</h3>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400 mt-1">
+                          <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {donation.donor.email}</span>
+                          <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {donation.donor.phone_number || 'N/A'}</span>
+                        </div>
+                      </div>
                     </div>
-                ) : (
-                    <p className="text-center text-gray-500 py-8">No pending approvals.</p>
-                )}
-            </CardContent>
-        </Card>
-    );
+
+                    <div className="grid sm:grid-cols-2 gap-4 pl-14">
+                      <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50">
+                        <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-1">Donation Type</p>
+                        <p className="text-zinc-200 capitalize font-medium">{donation.donation_type}</p>
+                      </div>
+                      {donation.amount && (
+                        <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50">
+                          <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-1">Amount</p>
+                          <p className="text-zinc-200 font-medium">${donation.amount}</p>
+                        </div>
+                      )}
+                      {donation.items && donation.items.length > 0 && (
+                        <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50 sm:col-span-2">
+                          <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-1">Items</p>
+                          <p className="text-zinc-200 text-sm">
+                            {donation.items.map(i => `${i.name} (x${i.quantity})`).join(', ')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-zinc-500 pl-14">
+                      Submitted on {format(new Date(donation.createdAt), 'PPP')}
+                    </p>
+                  </div>
+
+                  <div className="flex lg:flex-col items-center lg:items-end justify-end gap-3 min-w-[140px]">
+                    <Button
+                      size="sm"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/20"
+                      onClick={() => approveMutation.mutate(donation._id)}
+                      disabled={approveMutation.isPending}
+                    >
+                      <ThumbsUp className="w-4 h-4 mr-2" /> Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      onClick={() => rejectMutation.mutate(donation._id)}
+                      disabled={rejectMutation.isPending}
+                    >
+                      <ThumbsDown className="w-4 h-4 mr-2" /> Reject
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-zinc-950/30 rounded-xl border border-zinc-800/50 border-dashed">
+            <CheckCircle className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+            <p className="text-zinc-500 font-medium">No pending approvals</p>
+            <p className="text-zinc-600 text-sm mt-1">All caught up! New donations will appear here.</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 };
 
 
@@ -126,112 +157,100 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen p-6 flex items-center justify-center bg-zinc-950">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
       </div>
     );
   }
   if (isError || !stats) {
-    return <div className="p-6 text-red-500">Failed to load admin stats.</div>;
+    return <div className="min-h-screen p-6 bg-zinc-950 text-red-500 flex items-center justify-center">Failed to load admin stats.</div>;
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen p-6 lg:p-8 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-zinc-900">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-              Welcome back, {user?.name || user?.full_name || 'Admin'}
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+              Dashboard
             </h1>
-            <p className="text-gray-600 mt-2">Admin Dashboard</p>
+            <p className="text-zinc-400 mt-2 flex items-center gap-2">
+              Welcome back, <span className="text-zinc-200 font-medium">{user?.name || user?.full_name || 'Admin'}</span>
+            </p>
           </div>
+          <Badge variant="outline" className="px-4 py-1.5 text-sm bg-zinc-900 border-zinc-800 text-zinc-400 font-normal">
+            {format(new Date(), 'EEEE, MMMM do, yyyy')}
+          </Badge>
         </div>
 
         {/* Admin Info Card */}
-        <Card className="backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Award className="w-6 h-6 text-blue-600" /> Admin Profile</CardTitle>
+        <Card className="backdrop-blur-sm bg-zinc-900/50 border-zinc-800 shadow-lg">
+          <CardHeader className="border-b border-zinc-800/50 pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg font-medium text-zinc-200">
+              <Award className="w-5 h-5 text-blue-500" /> Admin Profile
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="flex items-center gap-3"><User className="w-5 h-5 text-gray-400" /><div><p className="text-sm text-gray-500">Name</p><p className="font-medium">{user?.name || user?.full_name}</p></div></div>
-              <div className="flex items-center gap-3"><Mail className="w-5 h-5 text-gray-400" /><div><p className="text-sm text-gray-500">Email</p><p className="font-medium">{user?.email}</p></div></div>
-              <div className="flex items-center gap-3"><Phone className="w-5 h-5 text-gray-400" /><div><p className="text-sm text-gray-500">Phone</p><p className="font-medium">{user?.phone_number || 'N/A'}</p></div></div>
+          <CardContent className="pt-6">
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <User className="w-5 h-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-0.5">Name</p>
+                  <p className="font-medium text-zinc-200">{user?.name || user?.full_name}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <Mail className="w-5 h-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-0.5">Email</p>
+                  <p className="font-medium text-zinc-200">{user?.email}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <Phone className="w-5 h-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-0.5">Phone</p>
+                  <p className="font-medium text-zinc-200">{user?.phone_number || 'N/A'}</p>
+                </div>
+              </div>
             </div>
-            <div className="mt-6 pt-6 border-t">
-              <Badge className="bg-gradient-to-r from-blue-600 to-orange-600 text-white text-base px-4 py-2">Admin ID: {user?._id}</Badge>
+            <div className="mt-6 pt-4 border-t border-zinc-800/50 flex justify-end">
+              <span className="text-xs text-zinc-600 font-mono">ID: {user?._id}</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* NEW: Pending Donations Component */}
-        <PendingDonations />
-
         {/* Admin Stats */}
         {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="bg-blue-50 border-none shadow-lg overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-600 opacity-10 rounded-full transform translate-x-12 -translate-y-12" />
-              <div className="p-5 relative">
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-sm font-medium text-gray-600">Active Donors</p>
-                  <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md">
-                    <Users className="w-5 h-5" />
-                  </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {[
+              { label: "Active Donors", value: stats.activeDonors, icon: Users, color: "blue", gradient: "from-blue-500 to-blue-600" },
+              { label: "Active Batch Staff", value: stats.activeBatchStaff, icon: Users, color: "green", gradient: "from-emerald-500 to-emerald-600" },
+              { label: "Batches to be Assigned", value: stats.toBeAssigned, icon: Package, color: "orange", gradient: "from-orange-500 to-orange-600" },
+              { label: "Batches Delivered", value: stats.delivered, icon: CheckCircle, color: "pink", gradient: "from-pink-500 to-pink-600" },
+              { label: "Ongoing Batches", value: stats.ongoing, icon: TrendingUp, color: "yellow", gradient: "from-yellow-500 to-yellow-600" }
+            ].map((stat, idx) => (
+              <Card key={idx} className="bg-zinc-900 border-zinc-800 shadow-lg overflow-hidden relative h-32">
+                <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${stat.gradient} rounded-bl-[32px] flex items-center justify-center shadow-lg`}>
+                  <stat.icon className="w-7 h-7 text-white" />
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.activeDonors}</p>
-              </div>
-            </Card>
-            <Card className="bg-green-50 border-none shadow-lg overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500 to-green-600 opacity-10 rounded-full transform translate-x-12 -translate-y-12" />
-              <div className="p-5 relative">
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-sm font-medium text-gray-600">Active Batch Staff</p>
-                  <div className="p-2 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md">
-                    <Users className="w-5 h-5" />
-                  </div>
+                <div className="p-6 flex flex-col justify-center h-full">
+                  <p className="text-sm font-medium text-zinc-400 pr-10">{stat.label}</p>
+                  <p className="text-3xl font-bold text-white mt-1 tracking-tight">{stat.value}</p>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.activeBatchStaff}</p>
-              </div>
-            </Card>
-            <Card className="bg-orange-50 border-none shadow-lg overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500 to-orange-600 opacity-10 rounded-full transform translate-x-12 -translate-y-12" />
-              <div className="p-5 relative">
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-sm font-medium text-gray-600">Batches to be Assigned</p>
-                  <div className="p-2 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-md">
-                    <Package className="w-5 h-5" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.toBeAssigned}</p>
-              </div>
-            </Card>
-            <Card className="bg-pink-50 border-none shadow-lg overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-500 to-pink-600 opacity-10 rounded-full transform translate-x-12 -translate-y-12" />
-              <div className="p-5 relative">
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-sm font-medium text-gray-600">Batches Delivered</p>
-                  <div className="p-2 rounded-full bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-md">
-                    <CheckCircle className="w-5 h-5" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.delivered}</p>
-              </div>
-            </Card>
-            <Card className="bg-yellow-50 border-none shadow-lg overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-500 to-yellow-600 opacity-10 rounded-full transform translate-x-12 -translate-y-12" />
-              <div className="p-5 relative">
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-sm font-medium text-gray-600">Ongoing Batches</p>
-                  <div className="p-2 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 text-white shadow-md">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.ongoing}</p>
-              </div>
-            </Card>
+              </Card>
+            ))}
           </div>
         )}
+
+        {/* Pending Donations Component */}
+        <PendingDonations />
       </div>
     </div>
   );

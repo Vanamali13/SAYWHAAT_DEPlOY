@@ -25,17 +25,17 @@ export default function DonorRegistrationCard({ onComplete }) {
   };
 
   return (
-    <Card className="backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
+    <Card className="backdrop-blur-sm bg-zinc-900 border-zinc-800 shadow-xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-2xl">
-          <UserPlus className="w-6 h-6 text-blue-600" />
+        <CardTitle className="flex items-center gap-2 text-2xl text-white">
+          <UserPlus className="w-6 h-6 text-white" />
           Register as Donor
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone" className="text-zinc-400">Phone Number</Label>
             <Input
               id="phone"
               type="tel"
@@ -43,9 +43,10 @@ export default function DonorRegistrationCard({ onComplete }) {
               value={phone_number}
               onChange={(e) => setPhone(e.target.value)}
               required
+              className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
             />
           </div>
-          <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-white text-black hover:bg-zinc-200" disabled={isLoading}>
             {isLoading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Registering...</>) : ("Complete Registration")}
           </Button>
         </form>

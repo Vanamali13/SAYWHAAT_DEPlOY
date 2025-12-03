@@ -72,12 +72,12 @@ export default function UploadProof() {
           </div>
 
           <p style="margin-top: 20px;">Thank you for your generous contribution and for bringing a smile to someone's face!</p>
-          <p>With gratitude,<br/>The COSWO Team</p>
+          <p>With gratitude,<br/>The Say Whatt Team</p>
         </div>
       `;
 
       return await base44.integrations.Core.SendEmail({
-        from_name: "COSWO Platform",
+        from_name: "Say Whatt Platform",
         to: donation.donor_email,
         subject: `Delivery Confirmed for Donation to ${receiver.full_name} (ID: ${donation.id.slice(-6)})`,
         body: emailBody
@@ -201,19 +201,19 @@ export default function UploadProof() {
   const isLoading = donationsLoading || receiversLoading;
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen p-6 bg-zinc-950">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold text-white">
             Upload Delivery Proof
           </h1>
           <p className="text-gray-600 mt-2">Document successful donation deliveries</p>
         </div>
 
-        <Card className="backdrop-blur-sm bg-white/90 border-gray-200/80 shadow-xl">
+        <Card className="backdrop-blur-sm bg-zinc-900 border-zinc-800 shadow-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl">
-              <Camera className="w-6 h-6 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 text-2xl text-white">
+              <Camera className="w-6 h-6 text-white" />
               Proof Upload
             </CardTitle>
           </CardHeader>
@@ -247,7 +247,7 @@ export default function UploadProof() {
                 onChange={handleFileSelect}
               />
               {files.length > 0 && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-zinc-400">
                   {files.length} file{files.length > 1 ? 's' : ''} selected
                 </p>
               )}
@@ -267,7 +267,7 @@ export default function UploadProof() {
             <Button
               onClick={handleUpload}
               disabled={uploading || !selectedDonation || files.length === 0}
-              className="w-full px-6 py-3 text-white bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700"
+              className="w-full px-6 py-3 text-black bg-white hover:bg-zinc-200"
               size="lg"
             >
               {uploading ? (
@@ -283,8 +283,8 @@ export default function UploadProof() {
               )}
             </Button>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
+            <div className="mt-6 p-4 bg-zinc-800 rounded-lg border border-zinc-700">
+              <p className="text-sm text-zinc-300">
                 <CheckCircle className="w-4 h-4 inline mr-2" />
                 The system will automatically analyze image quality and send the best 3 proofs to the donor via email.
               </p>

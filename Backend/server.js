@@ -26,7 +26,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin')); // Add the new admin routes
 
 app.get('/', (req, res) => {
-    res.send('COSWO Backend is running!');
+    res.send('Say Whatt Backend is running!');
 });
 
 app.listen(PORT, () => {

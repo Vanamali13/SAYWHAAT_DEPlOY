@@ -47,28 +47,29 @@ export default function SignUp() {
     };
 
     return (
-        <div className="w-full py-16">
-            <Card className="max-w-md mx-auto backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
+        <div className="w-full py-16 bg-zinc-950 min-h-screen flex items-center">
+            <Card className="max-w-md mx-auto backdrop-blur-sm bg-zinc-900 border-zinc-800 shadow-xl w-full">
                 <CardHeader>
-                    <CardTitle className="text-2xl text-center font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+                    <CardTitle className="text-2xl text-center font-bold text-white">
                         Create a New Account
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
-                            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md flex items-center gap-2">
+                            <div className="mb-4 p-3 bg-red-900/20 border border-red-800 text-red-400 rounded-md flex items-center gap-2">
                                 <AlertTriangle className="h-5 w-5" />
                                 <span>{error}</span>
                             </div>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="role">I am a</Label>
+                            <Label htmlFor="role" className="text-zinc-400">I am a</Label>
                             <Select
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                 placeholder="Select your role"
                                 disabled={mutation.isPending}
+                                className="bg-zinc-950 border-zinc-800 text-white"
                             >
                                 <SelectItem value="Donor">Donor</SelectItem>
                                 <SelectItem value="Batch staff">Batch Staff</SelectItem>
@@ -76,7 +77,7 @@ export default function SignUp() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="name">Full Name</Label>
+                            <Label htmlFor="name" className="text-zinc-400">Full Name</Label>
                             <Input
                                 id="name"
                                 name="name"
@@ -85,10 +86,11 @@ export default function SignUp() {
                                 onChange={handleChange}
                                 required
                                 disabled={mutation.isPending}
+                                className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email Address</Label>
+                            <Label htmlFor="email" className="text-zinc-400">Email Address</Label>
                             <Input
                                 id="email"
                                 name="email"
@@ -98,10 +100,11 @@ export default function SignUp() {
                                 onChange={handleChange}
                                 required
                                 disabled={mutation.isPending}
+                                className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password" className="text-zinc-400">Password</Label>
                             <Input
                                 id="password"
                                 name="password"
@@ -111,10 +114,11 @@ export default function SignUp() {
                                 onChange={handleChange}
                                 required
                                 disabled={mutation.isPending}
+                                className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Label htmlFor="confirmPassword" className="text-zinc-400">Confirm Password</Label>
                             <Input
                                 id="confirmPassword"
                                 name="confirmPassword"
@@ -124,9 +128,10 @@ export default function SignUp() {
                                 onChange={handleChange}
                                 required
                                 disabled={mutation.isPending}
+                                className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
                             />
                         </div>
-                        <Button type="submit" className="w-full font-semibold bg-gradient-to-r from-blue-600 to-orange-600 text-white py-3" disabled={mutation.isPending}>
+                        <Button type="submit" className="w-full font-semibold bg-white text-black hover:bg-zinc-200 py-3" disabled={mutation.isPending}>
                             {mutation.isPending ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -137,9 +142,9 @@ export default function SignUp() {
                             )}
                         </Button>
                     </form>
-                    <p className="text-center text-sm text-gray-600 mt-4">
+                    <p className="text-center text-sm text-zinc-500 mt-4">
                         Already have an account?{' '}
-                        <Link to="/login" className="font-medium text-blue-600 hover:underline">
+                        <Link to="/login" className="font-medium text-white hover:underline">
                             Log In
                         </Link>
                     </p>
