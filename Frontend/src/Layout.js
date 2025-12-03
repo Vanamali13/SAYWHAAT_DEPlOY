@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Link, useLocation, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { createPageUrl } from "./utils/utils";
-import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History } from "lucide-react";
+import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History, Layers } from "lucide-react";
 import { Sidebar } from "./Components/ui/sidebar";
 import HomePage from "./Pages/home";
 import AdminDashboard from "./Pages/AdminDashboard";
@@ -18,6 +18,7 @@ import SignUp from "./Pages/SignUp";
 import { AuthContext } from "./context/authContext";
 import DonationRequests from "./Pages/DonationRequests";
 import DonationHistory from "./Pages/DonationHistory";
+import Pools from "./Pages/Pools";
 
 import { Button } from "./Components/ui/button";
 
@@ -38,6 +39,7 @@ const adminNavigationItems = [
   { title: "Admin Dashboard", url: createPageUrl("admin-dashboard"), icon: LayoutDashboard, component: AdminDashboard },
   { title: "Donation Requests", url: createPageUrl("donation-requests"), icon: ListChecks, component: DonationRequests },
   { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
+  { title: "Pools", url: createPageUrl("pools"), icon: Layers, component: Pools },
   { title: "Donors List", url: createPageUrl("donorslist"), icon: Users, component: DonorsList },
   { title: "Batch Staff List", url: createPageUrl("batchstafflist"), icon: Users, component: BatchStaffList },
 ];

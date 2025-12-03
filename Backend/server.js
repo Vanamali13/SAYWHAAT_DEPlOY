@@ -23,7 +23,8 @@ mongoose.connect(MONGO_URI)
 app.use('/api/donations', require('./routes/donations'));
 app.use('/api/receivers', require('./routes/receivers'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/admin', require('./routes/admin')); // Add the new admin routes
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/pools', require('./routes/pools'));
 
 app.get('/', (req, res) => {
     res.send('Say Whatt Backend is running!');
