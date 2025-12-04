@@ -82,29 +82,29 @@ export default function CreateDonation() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-zinc-950">
+    <div className="min-h-screen p-6 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
-        <Card className="backdrop-blur-sm bg-zinc-900 border-zinc-800 shadow-xl">
+        <Card className="backdrop-blur-sm bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-3xl text-white">
-              <Gift className="w-8 h-8 text-white" />
+            <CardTitle className="flex items-center gap-3 text-3xl text-zinc-900 dark:text-white">
+              <Gift className="w-8 h-8 text-zinc-900 dark:text-white" />
               Create a New Donation
             </CardTitle>
           </CardHeader>
           <CardContent>
             {feedback.message && (
-              <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${feedback.type === 'success' ? 'bg-green-900/30 text-green-400 border border-green-800' : 'bg-red-900/30 text-red-400 border border-red-800'}`}>{feedback.message}</div>
+              <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${feedback.type === 'success' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800'}`}>{feedback.message}</div>
             )}
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="donation_type" className="text-zinc-400">Donation Type</Label>
+                  <Label htmlFor="donation_type" className="text-zinc-500 dark:text-zinc-400">Donation Type</Label>
                   <Select
                     id="donation_type"
                     onChange={e => setFormData(prev => ({ ...prev, donation_type: e.target.value }))}
                     value={formData.donation_type}
                     placeholder="Select a donation type"
-                    className="bg-zinc-950 border-zinc-800 text-white"
+                    className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
                   >
                     <SelectItem value="garments">Garments</SelectItem>
                     <SelectItem value="money">Money</SelectItem>
@@ -113,72 +113,77 @@ export default function CreateDonation() {
                 </div>
               </div>
 
-              {formData.donation_type === 'garments' && (
-                <div className="space-y-2">
-                  <Label htmlFor="garment_type" className="text-zinc-400">Type of Garments</Label>
-                  <Select
-                    id="garment_type"
-                    onChange={e => setFormData(prev => ({ ...prev, garment_type: e.target.value }))}
-                    value={formData.garment_type}
-                    placeholder="Select who these garments are for"
-                    className="bg-zinc-950 border-zinc-800 text-white"
-                  >
-                    <SelectItem value="children">Children</SelectItem>
-                    <SelectItem value="old_people">Old People</SelectItem>
-                  </Select>
-                </div>
-              )}
-
               {formData.donation_type === 'money' ? (
                 <div className="space-y-2">
-                  <Label htmlFor="amount" className="text-zinc-400">Amount ($)</Label>
+                  <Label htmlFor="amount" className="text-zinc-500 dark:text-zinc-400">Amount ($)</Label>
                   <Input
                     id="amount"
                     type="number"
                     placeholder="e.g., 50.00"
                     value={formData.amount}
                     onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                    className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
+                    className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                   />
+                  {formData.amount && parseFloat(formData.amount) >= 100 && parseFloat(formData.amount) <= 7000 && (
+                    <div className="flex items-center gap-2 p-2 mt-2 text-sm text-blue-700 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800">
+                      <Gift className="w-4 h-4" />
+                      <span>You will be entered into a donation pool!</span>
+                    </div>
+                  )}
                 </div>
               ) : formData.donation_type === 'garments' ? (
                 <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="garment_type" className="text-zinc-500 dark:text-zinc-400">Type of Garments</Label>
+                    <Select
+                      id="garment_type"
+                      onChange={e => setFormData(prev => ({ ...prev, garment_type: e.target.value }))}
+                      value={formData.garment_type}
+                      placeholder="Select who these garments are for"
+                      className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+                    >
+                      <SelectItem value="children">Children</SelectItem>
+                      <SelectItem value="men">Men</SelectItem>
+                      <SelectItem value="women">Women</SelectItem>
+                    </Select>
+                  </div>
+
                   <div className="flex justify-between items-center">
-                    <Label className="text-zinc-400">Items to Donate</Label>
-                    <Button type="button" variant="outline" onClick={handleAddItem} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+                    <Label className="text-zinc-500 dark:text-zinc-400">Items to Donate</Label>
+                    <Button type="button" variant="outline" onClick={handleAddItem} className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white">
                       <Plus className="w-4 h-4 mr-2" /> Add Item
                     </Button>
                   </div>
                   {formData.items.map((item, index) => (
-                    <div key={index} className="flex items-end gap-4 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                    <div key={index} className="flex items-end gap-4 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                       <div className="grid grid-cols-3 gap-4 flex-1">
                         <div className="space-y-2">
-                          <Label htmlFor={`item-name-${index}`} className="text-sm text-zinc-400">Item Name</Label>
+                          <Label htmlFor={`item-name-${index}`} className="text-sm text-zinc-500 dark:text-zinc-400">Item Name</Label>
                           <Input
                             id={`item-name-${index}`}
                             value={item.name}
                             onChange={(e) => handleItemChange(index, 'name', e.target.value)}
                             placeholder="e.g., Rice Bag"
-                            className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
+                            className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor={`item-quantity-${index}`} className="text-sm text-zinc-400">Quantity</Label>
+                          <Label htmlFor={`item-quantity-${index}`} className="text-sm text-zinc-500 dark:text-zinc-400">Quantity</Label>
                           <Input
                             id={`item-quantity-${index}`}
                             type="number"
                             value={item.quantity}
                             onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                            className="bg-zinc-950 border-zinc-800 text-white"
+                            className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor={`item-category-${index}`} className="text-sm text-zinc-400">Category</Label>
+                          <Label htmlFor={`item-category-${index}`} className="text-sm text-zinc-500 dark:text-zinc-400">Category</Label>
                           <Input
                             id={`item-category-${index}`}
                             value={item.category}
                             onChange={(e) => handleItemChange(index, 'category', e.target.value)}
-                            className="bg-zinc-950 border-zinc-800 text-white"
+                            className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
                           />
                         </div>
                       </div>
@@ -192,29 +197,29 @@ export default function CreateDonation() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="scheduled_delivery" className="text-zinc-400">Scheduled Delivery Date</Label>
+                  <Label htmlFor="scheduled_delivery" className="text-zinc-500 dark:text-zinc-400">Scheduled Delivery Date</Label>
                   <Input
                     id="scheduled_delivery"
                     type="date"
                     value={formData.scheduled_delivery}
                     onChange={(e) => setFormData(prev => ({ ...prev, scheduled_delivery: e.target.value }))}
-                    className="bg-zinc-950 border-zinc-800 text-white"
+                    className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="delivery_notes" className="text-zinc-400">Delivery Notes</Label>
+                  <Label htmlFor="delivery_notes" className="text-zinc-500 dark:text-zinc-400">Delivery Notes</Label>
                   <Textarea
                     id="delivery_notes"
                     placeholder="Any special instructions for delivery..."
                     value={formData.delivery_notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, delivery_notes: e.target.value }))}
-                    className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
+                    className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" size="lg" className="px-6 py-3 text-black bg-white hover:bg-zinc-200 shadow-lg" disabled={createDonationMutation.isLoading} onClick={() => console.log('[CreateDonation] Submit button clicked')}>
+                <Button type="submit" size="lg" className="px-6 py-3 text-white dark:text-black bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-lg" disabled={createDonationMutation.isLoading} onClick={() => console.log('[CreateDonation] Submit button clicked')}>
                   {createDonationMutation.isLoading ? (
                     <Loader2 className="w-6 h-6 mr-3 animate-spin" />
                   ) : (

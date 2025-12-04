@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Donation = require('../models/Donation');
 const User = require('../models/User');
-const auth = require('../middleware/auth'); // Assuming auth middleware sets req.user
+const Pool = require('../models/Pool');
+const Notification = require('../models/Notification');
+const auth = require('../middleware/auth');
 
 // @route   POST /api/donations
 // @desc    Create a new donation for approval
@@ -16,21 +18,45 @@ router.post('/', auth, async (req, res) => {
             return res.status(403).json({ msg: 'User is not a donor or not found.' });
         }
 
+        let assignedPool = null;
+        const amount = parseFloat(req.body.amount);
+
+        // Automatic Pool Assignment Logic
+        if (amount && amount >= 100 && amount <= 7000) {
+            // Find an active pool where adding this amount won't exceed the target
+            const activePools = await Pool.find({ status: 'active' });
+
+            for (const pool of activePools) {
+                if ((pool.current_amount + amount) <= pool.target_amount) {
+                    assignedPool = pool._id;
+                    break; // Assign to the first available pool
+                }
+            }
+        }
+
         // Create the new donation with a 'pending_approval' status
         const newDonation = new Donation({
             ...req.body,
             donor: user._id, // Link to the User document
-            status: 'pending_approval' // Default status for new donations
+            status: 'pending_approval', // Default status for new donations
+            pool: assignedPool
         });
 
         const savedDonation = await newDonation.save();
 
-        // Note: We do NOT update donor stats (total_donations, etc.) here.
-        // That will happen upon admin approval.
+        // Create notification if pool assigned
+        if (assignedPool) {
+            const pool = await Pool.findById(assignedPool);
+            await Notification.create({
+                recipient: user._id,
+                message: `Your donation of $${amount} has been tentatively assigned to the pool: "${pool.title}". It will be confirmed upon admin approval.`,
+                type: 'info'
+            });
+        }
 
-        res.status(201).json({ 
+        res.status(201).json({
             message: 'Donation submitted for approval.',
-            donation: savedDonation 
+            donation: savedDonation
         });
 
     } catch (err) {
@@ -44,7 +70,9 @@ router.post('/', auth, async (req, res) => {
 // @access  Private (Donor)
 router.get('/', auth, async (req, res) => {
     try {
-        const donations = await Donation.find({ donor: req.user.id }).sort({ createdAt: -1 });
+        const donations = await Donation.find({ donor: req.user.id })
+            .populate('pool')
+            .sort({ createdAt: -1 });
         res.json(donations);
     } catch (err) {
         res.status(500).json({ error: err.message });

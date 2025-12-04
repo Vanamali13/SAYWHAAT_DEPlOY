@@ -70,6 +70,11 @@ router.get('/pending-donations', [auth, adminAuth], async (req, res) => {
     }
 });
 
+const Pool = require('../models/Pool');
+const Notification = require('../models/Notification');
+
+// ... (existing imports)
+
 // @route   POST /api/admin/donations/:id/approve
 // @desc    Approve a donation, generate IDs if necessary
 // @access  Private (Admin only)
@@ -94,6 +99,39 @@ router.post('/donations/:id/approve', [auth, adminAuth], async (req, res) => {
         // Generate a unique donationId
         donation.donationId = generateDonationId(donor.donorId);
         donation.status = 'pending'; // Move to the next stage
+
+        // Update Pool if assigned
+        if (donation.pool) {
+            const pool = await Pool.findById(donation.pool);
+            if (pool) {
+                pool.current_amount += donation.amount;
+                // Add donor to members if not already present
+                if (!pool.members.includes(donor._id)) {
+                    pool.members.push(donor._id);
+                }
+
+                // Check if pool target reached (optional logic, can be added later)
+
+                await pool.save();
+
+                // Notify Admin about new pool member
+                // Assuming the current user (req.user.id) is the admin approving it, 
+                // but we might want to notify ALL admins or just log it.
+                // For now, let's create a notification for the admin who approved it.
+                await Notification.create({
+                    recipient: req.user.id,
+                    message: `New member ${donor.name} added to pool "${pool.title}" with donation of $${donation.amount}.`,
+                    type: 'success'
+                });
+
+                // Notify Donor about confirmation
+                await Notification.create({
+                    recipient: donor._id,
+                    message: `Your donation of $${donation.amount} has been approved and confirmed for pool: "${pool.title}".`,
+                    type: 'success'
+                });
+            }
+        }
 
         await donor.save();
         await donation.save();

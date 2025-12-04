@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Donor = require('../models/Donor');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/coswoDB';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sayWhattDB';
 
 async function seed() {
   await mongoose.connect(MONGO_URI);

@@ -35,17 +35,17 @@ export default function Login() {
   };
 
   return (
-    <div className="w-full py-16 bg-zinc-950 min-h-screen flex items-center">
-      <Card className="max-w-md mx-auto backdrop-blur-sm bg-zinc-900 border-zinc-800 shadow-xl w-full">
+    <div className="w-full py-16 bg-zinc-50 dark:bg-zinc-950 min-h-screen flex items-center transition-colors duration-300">
+      <Card className="max-w-md mx-auto backdrop-blur-sm bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl w-full">
         <CardHeader>
-          <CardTitle className="text-2xl text-center font-bold text-white">
+          <CardTitle className="text-2xl text-center font-bold text-zinc-900 dark:text-white">
             Login to Your Account
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-400">Email Address</Label>
+              <Label htmlFor="email" className="text-zinc-500 dark:text-zinc-400">Email Address</Label>
               <Input
                 id="email"
                 type="email"
@@ -55,11 +55,11 @@ export default function Login() {
                 onChange={handleChange}
                 required
                 disabled={loading}
-                className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
+                className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-400">Password</Label>
+              <Label htmlFor="password" className="text-zinc-500 dark:text-zinc-400">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -69,11 +69,11 @@ export default function Login() {
                 onChange={handleChange}
                 required
                 disabled={loading}
-                className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
+                className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
               />
             </div>
-            {error && <div className="text-red-400 text-sm text-center">{error}</div>}
-            <Button type="submit" className="w-full font-semibold bg-white text-black hover:bg-zinc-200 py-3" disabled={loading}>
+            {error && <div className="text-red-500 dark:text-red-400 text-sm text-center">{error}</div>}
+            <Button type="submit" className="w-full font-semibold bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 py-3" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -84,11 +84,11 @@ export default function Login() {
               )}
             </Button>
           </form>
-          <p className="text-center text-sm text-zinc-500 mt-4">
+          <p className="text-center text-sm text-zinc-600 dark:text-zinc-500 mt-4">
             Don't have an account?{" "}
             <Link
               to="/signup"
-              className="font-medium text-white hover:underline"
+              className="font-medium text-zinc-900 dark:text-white hover:underline"
             >
               Sign Up
             </Link>

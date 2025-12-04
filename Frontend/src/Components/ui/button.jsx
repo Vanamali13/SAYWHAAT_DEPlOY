@@ -4,12 +4,12 @@ import { cn } from '../../utils/utils';
 const Button = React.forwardRef(({ className, variant = "default", size = "default", asChild = false, ...props }, ref) => {
   const Comp = asChild ? "div" : "button";
   const variants = {
-    default: "bg-zinc-100 text-zinc-900 hover:bg-zinc-200",
-    destructive: "bg-red-900 text-zinc-100 hover:bg-red-900/90",
-    outline: "border border-zinc-800 bg-zinc-950 hover:bg-zinc-800 text-zinc-100",
-    secondary: "bg-zinc-800 text-zinc-100 hover:bg-zinc-800/80",
-    ghost: "hover:bg-zinc-800 hover:text-zinc-100",
-    link: "text-zinc-100 underline-offset-4 hover:underline",
+    default: "bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 hover:bg-zinc-900/90 dark:hover:bg-zinc-50/90",
+    destructive: "bg-red-500 dark:bg-red-900 text-zinc-50 dark:text-zinc-50 hover:bg-red-500/90 dark:hover:bg-red-900/90",
+    outline: "border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-50",
+    secondary: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80",
+    ghost: "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-50",
+    link: "text-zinc-900 dark:text-zinc-50 underline-offset-4 hover:underline",
   };
   const sizes = {
     default: "h-10 px-4 py-2",

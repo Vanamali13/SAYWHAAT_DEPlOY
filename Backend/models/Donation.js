@@ -12,6 +12,7 @@ const DonationSchema = new mongoose.Schema({
         required: true
     },
     receiver_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Receiver', required: false },
+    pool: { type: mongoose.Schema.Types.ObjectId, ref: 'Pool' },
     donation_type: String,
     amount: Number,
     items: [{ name: String, quantity: Number, category: String }],

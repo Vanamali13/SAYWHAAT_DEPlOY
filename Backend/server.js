@@ -13,7 +13,7 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
 // DB Connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/coswoDB';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sayWhattDB';
 mongoose.connect(MONGO_URI)
     .then(() => console.log('MongoDB connected successfully'))
     .catch(err => console.error('MongoDB connection error:', err));
@@ -25,6 +25,7 @@ app.use('/api/receivers', require('./routes/receivers'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/pools', require('./routes/pools'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 app.get('/', (req, res) => {
     res.send('Say Whatt Backend is running!');

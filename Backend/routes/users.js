@@ -167,4 +167,25 @@ router.get('/donations', auth, async (req, res) => {
 
 
 
+
+// PUT /api/users/me - Update current user details
+router.put('/me', auth, async (req, res) => {
+    const { name, phone_number } = req.body;
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        if (name) user.name = name;
+        if (phone_number) user.phone_number = phone_number;
+
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

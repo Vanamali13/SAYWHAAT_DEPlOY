@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Link, useLocation, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { createPageUrl } from "./utils/utils";
-import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History, Layers } from "lucide-react";
+import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History, Layers, Truck, User } from "lucide-react";
 import { Sidebar } from "./Components/ui/sidebar";
 import HomePage from "./Pages/home";
 import AdminDashboard from "./Pages/AdminDashboard";
@@ -15,10 +15,13 @@ import UploadProof from "./Pages/UploadProof";
 import DonationDetails from "./Pages/DonationDetails";
 import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
+import Profile from "./Pages/Profile";
 import { AuthContext } from "./context/authContext";
 import DonationRequests from "./Pages/DonationRequests";
 import DonationHistory from "./Pages/DonationHistory";
 import Pools from "./Pages/Pools";
+import ThemeToggle from "./Components/ui/ThemeToggle";
+import NotificationDropdown from "./Components/ui/NotificationDropdown";
 
 import { Button } from "./Components/ui/button";
 
@@ -27,12 +30,14 @@ const donorNavigationItems = [
   { title: "Donor Dashboard", url: createPageUrl("donordashboard"), icon: LayoutDashboard, component: DonorDashboard },
   { title: "Create Donation", url: createPageUrl("createdonation"), icon: Gift, component: CreateDonation },
   { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
+  { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
 ];
 
 const batchStaffNavigationItems = [
   { title: "Batch Staff Dashboard", url: createPageUrl("batch-staff-dashboard"), icon: LayoutDashboard, component: BatchStaffDashboard },
   { title: "Register Receiver", url: createPageUrl("registerreceiver"), icon: Users, component: RegisterReceiver },
   { title: "Upload Proof", url: createPageUrl("uploadproof"), icon: Upload, component: UploadProof },
+  { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
 ];
 
 const adminNavigationItems = [
@@ -41,7 +46,8 @@ const adminNavigationItems = [
   { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
   { title: "Pools", url: createPageUrl("pools"), icon: Layers, component: Pools },
   { title: "Donors List", url: createPageUrl("donorslist"), icon: Users, component: DonorsList },
-  { title: "Batch Staff List", url: createPageUrl("batchstafflist"), icon: Users, component: BatchStaffList },
+  { title: "Batch Staff List", url: createPageUrl("batchstafflist"), icon: Truck, component: BatchStaffList },
+  { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
 ];
 
 export default function Layout() {
@@ -80,26 +86,26 @@ export default function Layout() {
   }
 
   return (
-    <div className={`min-h-screen w-full ${showSidebar ? 'flex' : ''}`}>
-      <div className={`${!showSidebar ? 'bg-zinc-950' : ''} absolute inset-0 -z-10`} />
+    <div className={`min-h-screen w-full ${showSidebar ? 'flex' : ''} bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300`}>
+      <div className={`${!showSidebar ? 'bg-zinc-50 dark:bg-zinc-950' : ''} absolute inset-0 -z-10 transition-colors duration-300`} />
       {showSidebar ? (
-        <Sidebar className="border-r border-zinc-800 bg-zinc-900/95 backdrop-blur-sm flex flex-col h-screen">
+        <Sidebar className="border-r border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm flex flex-col h-screen transition-colors duration-300">
           <div className="p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-700">
-                <Heart className="w-6 h-6 text-white fill-white" />
+              <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-200 dark:border-zinc-700">
+                <Heart className="w-6 h-6 text-zinc-900 dark:text-white fill-zinc-900 dark:fill-white" />
               </div>
               <div>
-                <h2 className="font-bold text-lg text-white">
+                <h2 className="font-bold text-lg text-zinc-900 dark:text-white">
                   Say Whatt
                 </h2>
-                <p className="text-xs text-zinc-400">Transparent Giving</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Transparent Giving</p>
               </div>
             </div>
           </div>
           <div className="flex-1 flex flex-col justify-between">
             <div className="p-3">
-              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider px-3 py-2">
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase tracking-wider px-3 py-2">
                 Navigation
               </p>
               <div>
@@ -107,8 +113,8 @@ export default function Layout() {
                   {sidebarItems.map((item) => (
                     <div key={item.title}>
                       <Link to={item.url} className={`mb-1 transition-all duration-200 rounded-xl flex items-center gap-3 px-4 py-3 ${(location.pathname === item.url || (location.pathname === '/' && item.url === '/home'))
-                        ? 'bg-zinc-800 text-white shadow-md border border-zinc-700'
-                        : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100'
+                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-md border border-zinc-200 dark:border-zinc-700'
+                        : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100'
                         }`}>
                         <item.icon className="w-5 h-5" />
                         <span className="font-medium">{item.title}</span>
@@ -118,10 +124,10 @@ export default function Layout() {
                 </div>
               </div>
             </div>
-            <div className="p-4 border-t border-zinc-800">
+            <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
               <Button
                 variant="ghost"
-                className="w-full justify-start font-semibold text-red-500 hover:bg-red-950/30 hover:text-red-400 transition-all"
+                className="w-full justify-start font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
                 onClick={() => {
                   if (window.confirm('Are you sure you want to logout?')) {
                     logout();
@@ -136,34 +142,46 @@ export default function Layout() {
           </div>
         </Sidebar>
       ) : (
-        <header className="sticky top-0 z-20 w-full bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800">
+        <header className="sticky top-0 z-20 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-300">
           <div className="container mx-auto px-6 py-3 flex justify-between items-center">
             <Link to={createPageUrl("home")} className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-700">
-                <Heart className="w-6 h-6 text-white fill-white" />
+              <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-200 dark:border-zinc-700">
+                <Heart className="w-6 h-6 text-zinc-900 dark:text-white fill-zinc-900 dark:fill-white" />
               </div>
               <div>
-                <h2 className="font-bold text-lg text-white">
+                <h2 className="font-bold text-lg text-zinc-900 dark:text-white">
                   Say Whatt
                 </h2>
-                <p className="text-xs text-zinc-400">Transparent Giving</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Transparent Giving</p>
               </div>
             </Link>
-            {(location.pathname === "/" || location.pathname === "/home") && (
-              <div className="flex items-center gap-4">
-                <Link to="/login">
-                  <Button variant="outline" className="font-semibold px-4 py-2 text-md border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white bg-transparent">Login</Button>
-                </Link>
-                <Link to="/signup">
-                  <Button className="font-semibold bg-white text-black hover:bg-zinc-200 px-4 py-2 text-md">Sign Up</Button>
-                </Link>
-              </div>
-            )}
+            <div className="flex items-center gap-4">
+              {user && <NotificationDropdown align="right" />}
+              <ThemeToggle />
+              {(location.pathname === "/" || location.pathname === "/home") && (
+                <>
+                  <Link to="/login">
+                    <Button variant="outline" className="font-semibold px-4 py-2 text-md border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white bg-transparent">Login</Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button className="font-semibold bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 px-4 py-2 text-md">Sign Up</Button>
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </header>
       )}
 
       <main className="flex-1 flex flex-col relative">
+        {showSidebar && (
+          <header className="sticky top-0 z-20 flex justify-end items-center px-6 py-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <NotificationDropdown align="right" />
+            </div>
+          </header>
+        )}
         <div className={`flex-1 overflow-auto ${!showSidebar ? '' : 'p-6'}`}>
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -175,6 +193,7 @@ export default function Layout() {
             <Route path="/donorslist" element={user && user.role === 'Administrator' ? <DonorsList /> : <Navigate to="/login" replace />} />
             <Route path="/batchstafflist" element={user && user.role === 'Administrator' ? <BatchStaffList /> : <Navigate to="/login" replace />} />
             <Route path="/batch-staff-dashboard" element={user && user.role === 'Batch staff' ? <BatchStaffDashboard /> : <Navigate to="/login" replace />} />
+            <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/home" element={<HomePage />} />
             {/* Remove navigationItems.map, use sidebarItems.map instead */}

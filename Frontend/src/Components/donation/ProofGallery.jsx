@@ -9,10 +9,10 @@ export default function ProofGallery({ proofs }) {
 
   if (!proofs || proofs.length === 0) {
     return (
-      <Card className="backdrop-blur-sm bg-white/80">
+      <Card className="backdrop-blur-sm bg-white/80 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-800">
         <CardContent className="p-12 text-center">
-          <Camera className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500">No delivery proofs uploaded yet</p>
+          <Camera className="w-16 h-16 mx-auto text-zinc-300 dark:text-zinc-600 mb-4" />
+          <p className="text-zinc-500 dark:text-zinc-400">No delivery proofs uploaded yet</p>
         </CardContent>
       </Card>
     );
@@ -20,10 +20,10 @@ export default function ProofGallery({ proofs }) {
 
   return (
     <>
-      <Card className="backdrop-blur-sm bg-white/80 border-gray-200/80 shadow-xl">
+      <Card className="backdrop-blur-sm bg-white/80 dark:bg-zinc-900/80 border-zinc-200/80 dark:border-zinc-800/80 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="w-5 h-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-white">
+            <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Delivery Proofs ({proofs.length})
           </CardTitle>
         </CardHeader>
@@ -42,24 +42,24 @@ export default function ProofGallery({ proofs }) {
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                    <Video className="w-12 h-12 text-blue-600" />
+                  <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                    <Video className="w-12 h-12 text-blue-600 dark:text-blue-400" />
                   </div>
                 )}
-                
+
                 {proof.is_selected && (
-                  <Badge className="absolute top-2 right-2 bg-yellow-500 border-yellow-600">
+                  <Badge className="absolute top-2 right-2 bg-yellow-500 border-yellow-600 text-white">
                     <Star className="w-3 h-3 mr-1 fill-white" />
                     Best Quality
                   </Badge>
                 )}
-                
+
                 {proof.quality_score && (
-                  <Badge variant="outline" className="absolute bottom-2 left-2 bg-white/90">
+                  <Badge variant="outline" className="absolute bottom-2 left-2 bg-white/90 dark:bg-zinc-900/90 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-700">
                     Score: {proof.quality_score}
                   </Badge>
                 )}
-                
+
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
               </div>
             ))}
@@ -68,9 +68,9 @@ export default function ProofGallery({ proofs }) {
       </Card>
 
       <Dialog open={!!selectedProof} onOpenChange={() => setSelectedProof(null)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
           <DialogHeader>
-            <DialogTitle>Delivery Proof</DialogTitle>
+            <DialogTitle className="text-zinc-900 dark:text-white">Delivery Proof</DialogTitle>
           </DialogHeader>
           {selectedProof && (
             <div className="space-y-4">
@@ -88,7 +88,7 @@ export default function ProofGallery({ proofs }) {
                 />
               )}
               {selectedProof.upload_notes && (
-                <p className="text-sm text-gray-600">{selectedProof.upload_notes}</p>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">{selectedProof.upload_notes}</p>
               )}
             </div>
           )}

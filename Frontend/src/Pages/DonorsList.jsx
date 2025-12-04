@@ -28,25 +28,25 @@ export default function DonorsList() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center bg-zinc-950">
+      <div className="min-h-screen p-6 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
         <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
       </div>
     );
   }
 
   if (isError) {
-    return <div className="min-h-screen p-6 bg-zinc-950 text-red-500 flex items-center justify-center">Failed to load donors.</div>;
+    return <div className="min-h-screen p-6 bg-zinc-50 dark:bg-zinc-950 text-red-500 flex items-center justify-center">Failed to load donors.</div>;
   }
 
   return (
-    <div className="min-h-screen p-6 lg:p-8 bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen p-6 lg:p-8 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
       <div className="max-w-5xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-zinc-900">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-900">
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Donors List</h1>
-            <p className="text-zinc-400 mt-2">View and manage registered donors</p>
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Donors List</h1>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-2">View and manage registered donors</p>
           </div>
-          <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800">
+          <div className="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <Heart className="w-6 h-6 text-pink-500" />
           </div>
         </div>
@@ -58,13 +58,13 @@ export default function DonorsList() {
               placeholder="Search by name, email, or phone..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-10 bg-zinc-900/50 border-zinc-800 text-zinc-200 placeholder:text-zinc-600 focus:ring-pink-500/20 focus:border-pink-500/50"
+              className="pl-10 bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:ring-pink-500/20 focus:border-pink-500/50"
             />
           </div>
           <select
             value={filter}
             onChange={e => setFilter(e.target.value)}
-            className="h-10 px-3 rounded-md bg-zinc-900/50 border border-zinc-800 text-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500/50 min-w-[120px]"
+            className="h-10 px-3 rounded-md bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500/50 min-w-[120px]"
           >
             <option value="">All</option>
             {Array.from(new Set((donors || []).map(d => d.name[0]?.toUpperCase()))).sort().map(letter => (
@@ -73,17 +73,17 @@ export default function DonorsList() {
           </select>
         </div>
 
-        <Card className="bg-zinc-900/50 border-zinc-800 shadow-xl overflow-hidden backdrop-blur-sm">
+        <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden backdrop-blur-sm">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-800">
+            <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
               <thead>
-                <tr className="bg-zinc-900/80">
-                  <th className="px-6 py-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Phone</th>
+                <tr className="bg-zinc-100/80 dark:bg-zinc-900/80">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Phone</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-zinc-200/50 dark:divide-zinc-800/50">
                 {filteredDonors.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-6 py-12 text-center text-zinc-500">
@@ -92,22 +92,22 @@ export default function DonorsList() {
                     </td>
                   </tr>
                 ) : filteredDonors.map(donor => (
-                  <tr key={donor._id} className="group hover:bg-zinc-900/80 transition-colors">
+                  <tr key={donor._id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-900/80 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500 font-medium text-sm">
                           {donor.name[0]?.toUpperCase()}
                         </div>
-                        <span className="text-zinc-200 font-medium">{donor.name}</span>
+                        <span className="text-zinc-900 dark:text-zinc-200 font-medium">{donor.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-zinc-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                       <div className="flex items-center gap-2">
                         <Mail className="w-3 h-3" />
                         {donor.email}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-zinc-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                       <div className="flex items-center gap-2">
                         <Phone className="w-3 h-3" />
                         {donor.phone_number || 'N/A'}

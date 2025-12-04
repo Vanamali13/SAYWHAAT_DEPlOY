@@ -201,25 +201,25 @@ export default function UploadProof() {
   const isLoading = donationsLoading || receiversLoading;
 
   return (
-    <div className="min-h-screen p-6 bg-zinc-950">
+    <div className="min-h-screen p-6 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white">
+          <h1 className="text-4xl font-bold text-zinc-900 dark:text-white">
             Upload Delivery Proof
           </h1>
-          <p className="text-gray-600 mt-2">Document successful donation deliveries</p>
+          <p className="text-zinc-600 dark:text-zinc-400 mt-2">Document successful donation deliveries</p>
         </div>
 
-        <Card className="backdrop-blur-sm bg-zinc-900 border-zinc-800 shadow-xl">
+        <Card className="backdrop-blur-sm bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl text-white">
-              <Camera className="w-6 h-6 text-white" />
+            <CardTitle className="flex items-center gap-2 text-2xl text-zinc-900 dark:text-white">
+              <Camera className="w-6 h-6 text-blue-600 dark:text-white" />
               Proof Upload
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="donation">Select Donation *</Label>
+              <Label htmlFor="donation" className="text-zinc-900 dark:text-white">Select Donation *</Label>
               <Select
                 value={selectedDonation}
                 onChange={e => setSelectedDonation(e.target.value)}
@@ -238,23 +238,24 @@ export default function UploadProof() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="files">Upload Photos/Videos *</Label>
+              <Label htmlFor="files" className="text-zinc-900 dark:text-white">Upload Photos/Videos *</Label>
               <Input
                 id="files"
                 type="file"
                 multiple
                 accept="image/*,video/*"
                 onChange={handleFileSelect}
+                className="cursor-pointer"
               />
               {files.length > 0 && (
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   {files.length} file{files.length > 1 ? 's' : ''} selected
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Upload Notes</Label>
+              <Label htmlFor="notes" className="text-zinc-900 dark:text-white">Upload Notes</Label>
               <Textarea
                 id="notes"
                 placeholder="Add any notes about the delivery..."
@@ -267,7 +268,7 @@ export default function UploadProof() {
             <Button
               onClick={handleUpload}
               disabled={uploading || !selectedDonation || files.length === 0}
-              className="w-full px-6 py-3 text-black bg-white hover:bg-zinc-200"
+              className="w-full px-6 py-3 text-white bg-zinc-900 hover:bg-zinc-800 dark:text-black dark:bg-white dark:hover:bg-zinc-200"
               size="lg"
             >
               {uploading ? (
@@ -283,8 +284,8 @@ export default function UploadProof() {
               )}
             </Button>
 
-            <div className="mt-6 p-4 bg-zinc-800 rounded-lg border border-zinc-700">
-              <p className="text-sm text-zinc-300">
+            <div className="mt-6 p-4 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">
                 <CheckCircle className="w-4 h-4 inline mr-2" />
                 The system will automatically analyze image quality and send the best 3 proofs to the donor via email.
               </p>
