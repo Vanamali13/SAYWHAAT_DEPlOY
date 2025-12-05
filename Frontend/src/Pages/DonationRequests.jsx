@@ -24,7 +24,7 @@ const rejectDonation = async (donationId) => {
     return data;
 };
 
-const DonationCard = ({ donation }) => {
+const DonationCard = ({ donation, onApprove, onReject, isLoading }) => {
     const getStatusBadge = (status) => {
         switch (status) {
             case 'pending_approval':
@@ -37,7 +37,7 @@ const DonationCard = ({ donation }) => {
     };
 
     return (
-        <div className="group p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white/40 dark:bg-zinc-900/40 hover:bg-white/80 dark:hover:bg-zinc-900/80 transition-all duration-200 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm relative overflow-hidden">
+        <div className="group p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white/40 dark:bg-zinc-900/40 hover:bg-white/80 dark:hover:bg-zinc-900/80 transition-all duration-200 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm relative overflow-hidden flex flex-col h-full">
             {/* Header */}
             <div className="flex justify-between items-start mb-4 relative z-10">
                 <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
@@ -55,7 +55,7 @@ const DonationCard = ({ donation }) => {
             </div>
 
             {/* Content */}
-            <div className="space-y-3 bg-zinc-50/50 dark:bg-zinc-950/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800/50 relative z-10">
+            <div className="space-y-3 bg-zinc-50/50 dark:bg-zinc-950/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800/50 relative z-10 flex-1">
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-zinc-500 font-medium">Type</span>
                     <span className="text-zinc-700 dark:text-zinc-200 font-semibold capitalize">{donation.donation_type}</span>
@@ -81,8 +81,20 @@ const DonationCard = ({ donation }) => {
                 )}
             </div>
 
+            {/* Actions */}
+            {onApprove && onReject && (
+                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800/50 relative z-10">
+                    <Button size="sm" className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex-1" onClick={() => onApprove(donation._id)} disabled={isLoading}>
+                        <ThumbsUp className="w-3.5 h-3.5 mr-1.5" /> Approve
+                    </Button>
+                    <Button size="sm" variant="destructive" className="h-9 bg-red-600 hover:bg-red-700 text-white shadow-sm flex-1" onClick={() => onReject(donation._id)} disabled={isLoading}>
+                        <ThumbsDown className="w-3.5 h-3.5 mr-1.5" /> Reject
+                    </Button>
+                </div>
+            )}
+
             {/* Footer */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800/50 relative z-10">
+            <div className="flex items-center justify-between mt-3 pt-2 relative z-10">
                 <p className="text-[10px] text-zinc-500 flex items-center gap-1.5">
                     <Calendar className="w-3 h-3" />
                     {format(new Date(donation.createdAt), 'MMM d, yyyy • h:mm a')}
@@ -128,17 +140,12 @@ const RequestCategory = ({ title, donations, onApprove, onReject, isLoadingMutat
                     {donations.length > 0 ? (
                         donations.map(donation => (
                             <div key={donation._id} className="relative group/card">
-                                <DonationCard donation={donation} />
-                                {title === 'Pending Approval' && (
-                                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-zinc-50 via-zinc-50/90 dark:from-zinc-950 dark:via-zinc-950/90 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 flex items-end justify-center gap-2 pt-12 rounded-b-xl">
-                                        <Button size="sm" className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/20 flex-1" onClick={() => onApprove(donation._id)} disabled={isLoadingMutations}>
-                                            <ThumbsUp className="w-3.5 h-3.5 mr-1.5" /> Approve
-                                        </Button>
-                                        <Button size="sm" variant="destructive" className="h-9 bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-900/20 flex-1" onClick={() => onReject(donation._id)} disabled={isLoadingMutations}>
-                                            <ThumbsDown className="w-3.5 h-3.5 mr-1.5" /> Reject
-                                        </Button>
-                                    </div>
-                                )}
+                                <DonationCard
+                                    donation={donation}
+                                    onApprove={title === 'Pending Approval' ? onApprove : undefined}
+                                    onReject={title === 'Pending Approval' ? onReject : undefined}
+                                    isLoading={isLoadingMutations}
+                                />
                             </div>
                         ))
                     ) : (

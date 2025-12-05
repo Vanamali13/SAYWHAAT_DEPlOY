@@ -9,13 +9,25 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils/utils";
 
 const statusColors = {
-  pending: "bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800",
+  pending_approval: "bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800",
+  pending: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
+  rejected: "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
   in_transit: "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800",
   delivered: "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
   confirmed: "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800"
 };
 
 export default function DonationCard({ donation, proofCount }) {
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'pending_approval': return 'Requested';
+      case 'pending': return 'Accepted';
+      case 'rejected': return 'Rejected';
+      case 'in_transit': return 'In Transit';
+      default: return status ? status.replace('_', ' ') : 'Unknown';
+    }
+  };
+
   return (
     <Card className="hover:shadow-xl transition-all duration-300 backdrop-blur-sm bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
       <CardHeader className="pb-3">
@@ -27,7 +39,7 @@ export default function DonationCard({ donation, proofCount }) {
             </p>
           </div>
           <Badge className={`${statusColors[donation.status] || 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'} border`}>
-            {donation.status ? donation.status.replace('_', ' ') : 'Unknown'}
+            {getStatusLabel(donation.status)}
           </Badge>
         </div>
       </CardHeader>
