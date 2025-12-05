@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "../ui/card";
-import { TrendingUp, Heart, Users, Package } from "lucide-react";
+import { TrendingUp, Heart, Users, Package, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -22,9 +22,9 @@ export default function ImpactStats({ stats }) {
       link: "/donation-history"
     },
     {
-      label: "People Helped",
-      value: stats.peopleHelped || 0,
-      icon: Users,
+      label: "Impact Created",
+      value: `${stats.impactCreated || 0}%`,
+      icon: Zap,
       color: "from-orange-500 to-orange-600",
       link: "/donation-history"
     },

@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../api/apiClient";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { Loader2, ThumbsUp, ThumbsDown, Check, X, Clock, LayoutList, User, Mail, Package, DollarSign, Calendar, Box } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Button } from "../Components/ui/button";
@@ -195,8 +195,8 @@ export default function DonationRequests() {
     }
 
     const pending = donations?.filter(d => d.status === 'pending_approval') || [];
-    const accepted = donations?.filter(d => d.status !== 'pending_approval' && d.status !== 'rejected') || [];
-    const rejected = donations?.filter(d => d.status === 'rejected') || [];
+    const accepted = donations?.filter(d => d.status !== 'pending_approval' && d.status !== 'rejected' && isToday(new Date(d.updatedAt))) || [];
+    const rejected = donations?.filter(d => d.status === 'rejected' && isToday(new Date(d.updatedAt))) || [];
 
     const isLoadingMutations = approveMutation.isPending || rejectMutation.isPending;
 

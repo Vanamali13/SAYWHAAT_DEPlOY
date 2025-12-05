@@ -23,7 +23,8 @@ export default function CreateDonation() {
     items: [{ name: "", quantity: 1, category: "garments" }],
     garment_type: "",
     delivery_notes: "",
-    scheduled_delivery: ""
+    scheduled_delivery: "",
+    join_pool: false // Added for money donations
   });
 
   const [feedback, setFeedback] = useState({ type: '', message: '' });
@@ -74,9 +75,27 @@ export default function CreateDonation() {
       garment_type: formData.donation_type === 'garments' ? formData.garment_type : null,
     };
 
-    if (formData.donation_type !== 'money') delete finalData.amount;
+    if (formData.donation_type === 'money') {
+      delete finalData.items;
+      delete finalData.garment_type; // Ensure garment_type is not sent for money donations
+      delete finalData.scheduled_delivery; // Ensure scheduled_delivery is not sent for money donations
+
+      const amountValue = parseFloat(formData.amount);
+      if (amountValue >= 100 && amountValue <= 7000) {
+        finalData.join_pool = true;
+      } else if (amountValue > 7000) {
+        finalData.join_pool = formData.join_pool; // Use user's selection
+      } else {
+        finalData.join_pool = false; // For amounts < 100
+      }
+
+      navigate('/payment', { state: { donationData: finalData } });
+      return;
+    } else {
+      delete finalData.amount;
+      delete finalData.join_pool; // Ensure join_pool is not sent for non-money donations
+    }
     if (formData.donation_type !== 'garments') delete finalData.garment_type;
-    if (formData.donation_type === 'money') delete finalData.items;
 
     createDonationMutation.mutate(finalData);
   };
@@ -114,20 +133,59 @@ export default function CreateDonation() {
               </div>
 
               {formData.donation_type === 'money' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="amount" className="text-zinc-500 dark:text-zinc-400">Amount ($)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="e.g., 50.00"
-                    value={formData.amount}
-                    onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                    className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
-                  />
-                  {formData.amount && parseFloat(formData.amount) >= 100 && parseFloat(formData.amount) <= 7000 && (
-                    <div className="flex items-center gap-2 p-2 mt-2 text-sm text-blue-700 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800">
-                      <Gift className="w-4 h-4" />
-                      <span>You will be entered into a donation pool!</span>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount" className="text-zinc-500 dark:text-zinc-400">Amount ($)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="e.g., 50.00"
+                      value={formData.amount}
+                      onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                      className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+                    />
+                    {formData.amount && parseFloat(formData.amount) >= 100 && parseFloat(formData.amount) <= 7000 && (
+                      <div className="flex items-center gap-2 p-2 mt-2 text-sm text-blue-700 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800">
+                        <Gift className="w-4 h-4" />
+                        <span>You will be entered into a donation pool!</span>
+                      </div>
+                    )}
+                    {formData.amount && parseFloat(formData.amount) < 100 && (
+                      <div className="flex items-center gap-2 p-2 mt-2 text-sm text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-300 rounded-md border border-red-200 dark:border-red-800">
+                        <span>Minimum donation amount is $100.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {formData.amount && parseFloat(formData.amount) > 7000 && (
+                    <div className="space-y-2 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                      <Label className="text-zinc-900 dark:text-white font-medium">Donation Mode</Label>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id="individual"
+                            name="donation_mode"
+                            value="individual"
+                            checked={formData.join_pool === false}
+                            onChange={() => setFormData(prev => ({ ...prev, join_pool: false }))}
+                            className="w-4 h-4 text-blue-600 bg-zinc-100 border-zinc-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                          />
+                          <Label htmlFor="individual" className="text-zinc-700 dark:text-zinc-300 font-normal">Individual Donation</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id="pool"
+                            name="donation_mode"
+                            value="pool"
+                            checked={formData.join_pool === true}
+                            onChange={() => setFormData(prev => ({ ...prev, join_pool: true }))}
+                            className="w-4 h-4 text-blue-600 bg-zinc-100 border-zinc-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                          />
+                          <Label htmlFor="pool" className="text-zinc-700 dark:text-zinc-300 font-normal">Join a Donation Pool</Label>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -196,16 +254,18 @@ export default function CreateDonation() {
               ) : null}
 
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="scheduled_delivery" className="text-zinc-500 dark:text-zinc-400">Scheduled Delivery Date</Label>
-                  <Input
-                    id="scheduled_delivery"
-                    type="date"
-                    value={formData.scheduled_delivery}
-                    onChange={(e) => setFormData(prev => ({ ...prev, scheduled_delivery: e.target.value }))}
-                    className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
-                  />
-                </div>
+                {formData.donation_type !== 'money' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduled_delivery" className="text-zinc-500 dark:text-zinc-400">Scheduled Delivery Date</Label>
+                    <Input
+                      id="scheduled_delivery"
+                      type="date"
+                      value={formData.scheduled_delivery}
+                      onChange={(e) => setFormData(prev => ({ ...prev, scheduled_delivery: e.target.value }))}
+                      className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="delivery_notes" className="text-zinc-500 dark:text-zinc-400">Delivery Notes</Label>
                   <Textarea
@@ -219,13 +279,13 @@ export default function CreateDonation() {
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" size="lg" className="px-6 py-3 text-white dark:text-black bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-lg" disabled={createDonationMutation.isLoading} onClick={() => console.log('[CreateDonation] Submit button clicked')}>
+                <Button type="submit" size="lg" className="px-6 py-3 text-white dark:text-black bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-lg" disabled={createDonationMutation.isLoading || (formData.donation_type === 'money' && parseFloat(formData.amount || '0') < 100)} onClick={() => console.log('[CreateDonation] Submit button clicked')}>
                   {createDonationMutation.isLoading ? (
                     <Loader2 className="w-6 h-6 mr-3 animate-spin" />
                   ) : (
                     <Gift className="w-6 h-6 mr-3" />
                   )}
-                  Create Donation
+                  {formData.donation_type === 'money' ? 'Donate Now' : 'Create Donation'}
                 </Button>
               </div>
             </form>

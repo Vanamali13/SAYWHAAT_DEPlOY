@@ -56,9 +56,14 @@ const NotificationDropdown = ({ align = 'right' }) => {
                         className="fixed inset-0 z-40"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} mt-2 w-80 max-h-96 overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-50 p-2`}>
-                        <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 mb-2">
+                    <div className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} mt-2 w-80 max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl z-[100] p-2`}>
+                        <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 mb-2 flex justify-between items-center">
                             <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">Notifications</h3>
+                            {notifications.length > 0 && (
+                                <Button variant="ghost" size="sm" className="h-6 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300" onClick={() => notifications.forEach(n => !n.read && handleMarkRead(n._id))}>
+                                    Mark all read
+                                </Button>
+                            )}
                         </div>
                         {notifications.length === 0 ? (
                             <div className="p-4 text-center text-sm text-zinc-500 dark:text-zinc-400">

@@ -22,7 +22,13 @@ router.post('/', auth, async (req, res) => {
         const amount = parseFloat(req.body.amount);
 
         // Automatic Pool Assignment Logic
-        if (amount && amount >= 100 && amount <= 7000) {
+        // Assign if:
+        // 1. Explicitly requested via join_pool: true (for > 7000)
+        // 2. Amount is between 100 and 7000 AND not explicitly opted out (join_pool !== false)
+        const shouldJoinPool = (req.body.join_pool === true) ||
+            (amount && amount >= 100 && amount <= 7000 && req.body.join_pool !== false);
+
+        if (amount && shouldJoinPool) {
             // Find an active pool where adding this amount won't exceed the target
             const activePools = await Pool.find({ status: 'active' });
 
@@ -34,11 +40,13 @@ router.post('/', auth, async (req, res) => {
             }
         }
 
-        // Create the new donation with a 'pending_approval' status
+        // Create the new donation
+        const initialStatus = req.body.donation_type === 'money' ? 'pending' : 'pending_approval';
+
         const newDonation = new Donation({
             ...req.body,
             donor: user._id, // Link to the User document
-            status: 'pending_approval', // Default status for new donations
+            status: initialStatus,
             pool: assignedPool
         });
 
@@ -52,6 +60,19 @@ router.post('/', auth, async (req, res) => {
                 message: `Your donation of $${amount} has been tentatively assigned to the pool: "${pool.title}". It will be confirmed upon admin approval.`,
                 type: 'info'
             });
+        }
+
+        // Notify Admins if it's a money donation (auto-approved)
+        if (req.body.donation_type === 'money') {
+            const admins = await User.find({ role: 'Administrator' });
+            const notifications = admins.map(admin => ({
+                recipient: admin._id,
+                message: `New money donation of $${amount} received from ${user.name}. Auto-approved.`,
+                type: 'success'
+            }));
+            if (notifications.length > 0) {
+                await Notification.insertMany(notifications);
+            }
         }
 
         res.status(201).json({

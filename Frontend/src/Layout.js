@@ -16,6 +16,7 @@ import DonationDetails from "./Pages/DonationDetails";
 import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
 import Profile from "./Pages/Profile";
+import Payment from "./Pages/Payment";
 import { AuthContext } from "./context/authContext";
 import DonationRequests from "./Pages/DonationRequests";
 import DonationHistory from "./Pages/DonationHistory";
@@ -142,7 +143,7 @@ export default function Layout() {
           </div>
         </Sidebar>
       ) : (
-        <header className="sticky top-0 z-20 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-300">
+        <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-300">
           <div className="container mx-auto px-6 py-3 flex justify-between items-center">
             <Link to={createPageUrl("home")} className="flex items-center gap-3">
               <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-200 dark:border-zinc-700">
@@ -175,7 +176,7 @@ export default function Layout() {
 
       <main className="flex-1 flex flex-col relative">
         {showSidebar && (
-          <header className="sticky top-0 z-20 flex justify-end items-center px-6 py-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+          <header className="sticky top-0 z-50 flex justify-end items-center px-6 py-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center gap-4">
               <ThemeToggle />
               <NotificationDropdown align="right" />
@@ -201,6 +202,7 @@ export default function Layout() {
               <Route key={item.url} path={item.url} element={user ? <item.component /> : <Navigate to="/login" replace />} />
             ))}
             <Route path="/donations/:id" element={user ? <DonationDetails /> : <Navigate to="/login" replace />} />
+            <Route path="/payment" element={user ? <Payment /> : <Navigate to="/login" replace />} />
           </Routes>
         </div>
       </main>

@@ -7,6 +7,7 @@ import DonationCard from "../Components/donation/DonationCard";
 import { Button } from "../Components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils/utils";
+import { isToday } from "date-fns";
 
 const DonationHistory = () => {
     const { user } = useContext(AuthContext);
@@ -16,10 +17,9 @@ const DonationHistory = () => {
         queryFn: async () => {
             if (user?.role === 'Administrator') {
                 const { data } = await apiClient.get("/admin/donations");
-                // Filter for donations older than 30 days
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                return data.filter(d => new Date(d.createdAt) < thirtyDaysAgo);
+                // Filter for donations that are processed (not pending) and NOT from today
+                // (Today's processed donations are shown in DonationRequests)
+                return data.filter(d => d.status !== 'pending_approval' && !isToday(new Date(d.updatedAt)));
             } else {
                 const { data } = await apiClient.get('/donations');
                 return data;

@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Donation = require('../models/Donation');
 const auth = require('../middleware/auth'); // We will create this middleware
@@ -125,17 +126,42 @@ router.get('/dashboard', auth, async (req, res) => {
         }
 
         // Get stats
-        const donations = await Donation.find({ donor_id: user._id });
+        // Use 'donor' field instead of 'donor_id' as per the schema update
+        console.log(`[Dashboard] Fetching donations for donor: ${req.user.id}`);
+        const donations = await Donation.find({ donor: new mongoose.Types.ObjectId(req.user.id) }).populate('pool');
+        console.log(`[Dashboard] Found ${donations.length} donations`);
+
+        // Calculate Impact Created: Average percentage of contribution across pools
+        const poolContributions = {};
+        donations.forEach(d => {
+            if (d.pool && d.pool.target_amount > 0) {
+                if (!poolContributions[d.pool._id]) {
+                    poolContributions[d.pool._id] = {
+                        amount: 0,
+                        target: d.pool.target_amount
+                    };
+                }
+                poolContributions[d.pool._id].amount += (d.amount || 0);
+            }
+        });
+
+        let totalPercentage = 0;
+        const poolsCount = Object.keys(poolContributions).length;
+        for (const poolId in poolContributions) {
+            const { amount, target } = poolContributions[poolId];
+            totalPercentage += (amount / target) * 100;
+        }
+        const impactCreated = poolsCount > 0 ? (totalPercentage / poolsCount).toFixed(1) : 0;
+
         const stats = {
             totalDonations: donations.length,
             totalAmount: donations.reduce((sum, d) => sum + (d.amount || 0), 0),
-            // These stats might need more complex queries in the future
-            peopleHelped: 0,
-            confirmedDeliveries: 0,
+            impactCreated: impactCreated, // Replaces peopleHelped
+            confirmedDeliveries: donations.filter(d => d.status === 'confirmed').length,
         };
 
         // Get recent donations
-        const recentDonations = await Donation.find({ donor_id: user._id })
+        const recentDonations = await Donation.find({ donor: new mongoose.Types.ObjectId(req.user.id) })
             .sort({ createdAt: -1 }) // Use createdAt for more reliable sorting
             .limit(5)
             .populate('receiver_id'); // Populate receiver details
