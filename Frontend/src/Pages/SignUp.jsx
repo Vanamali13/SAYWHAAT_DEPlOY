@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import api from '../api/apiClient';
 import { Card, CardContent, CardHeader, CardTitle } from '../Components/ui/card';
@@ -8,6 +8,9 @@ import { Button } from '../Components/ui/button';
 import { Label } from '../Components/ui/label';
 import { Loader2, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { Select, SelectItem } from '../Components/ui/select';
+
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
@@ -20,12 +23,24 @@ export default function SignUp() {
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [socialLoading, setSocialLoading] = useState(false);
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.socialUser) {
+            setFormData(prev => ({
+                ...prev,
+                name: location.state.socialUser.name || '',
+                email: location.state.socialUser.email || ''
+            }));
+            setError("Please select your role and click 'Continue with Google' to complete registration.");
+        }
+    }, [location.state]);
 
     const mutation = useMutation({
         mutationFn: (newUser) => api.post('/users/register', newUser),
         onSuccess: (data) => {
-            // After successful signup, do NOT redirect immediately.
-            // Instead, reload the page so the user can log in manually.
+            // After successful signup, reload to login
             window.location.href = '/login';
         },
         onError: (error) => {
@@ -36,6 +51,33 @@ export default function SignUp() {
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSocialLogin = async (provider) => {
+        try {
+            setSocialLoading(true);
+            setError("");
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Send to backend (same endpoint as login, it handles registration too)
+            const res = await api.post('/users/social-login', {
+                email: user.email,
+                name: user.displayName,
+                providerId: user.providerId,
+                role: formData.role // Include selected role
+            });
+
+            if (res.data.token) {
+                localStorage.setItem('token', res.data.token);
+                window.location.href = '/donordashboard';
+            }
+        } catch (err) {
+            console.error("Social signup error:", err);
+            setError(err.message || "Social signup failed");
+        } finally {
+            setSocialLoading(false);
+        }
     };
 
     const handleSubmit = (e) => {
@@ -181,8 +223,8 @@ export default function SignUp() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <Button variant="outline" type="button" className="w-full border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white" onClick={() => alert("Google SignUp logic here")}>
+                        <div className="grid grid-cols-1 gap-4">
+                            <Button variant="outline" type="button" className="w-full border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white" onClick={() => handleSocialLogin(googleProvider)} disabled={mutation.isPending || socialLoading}>
                                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                                     <path
                                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -201,17 +243,7 @@ export default function SignUp() {
                                         fill="#EA4335"
                                     />
                                 </svg>
-                                Google
-                            </Button>
-                            <Button variant="outline" type="button" className="w-full border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white" onClick={() => alert("Microsoft SignUp logic here")}>
-                                <svg className="mr-2 h-4 w-4" viewBox="0 0 23 23">
-                                    <path fill="#f3f3f3" d="M0 0h23v23H0z" />
-                                    <path fill="#f35325" d="M1 1h10v10H1z" />
-                                    <path fill="#81bc06" d="M12 1h10v10H12z" />
-                                    <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                                    <path fill="#ffba08" d="M12 12h10v10H12z" />
-                                </svg>
-                                Microsoft
+                                Continue with Google
                             </Button>
                         </div>
                     </form>

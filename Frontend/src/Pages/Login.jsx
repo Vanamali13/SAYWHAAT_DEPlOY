@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/authContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Input } from "../Components/ui/input";
 import { Button } from "../Components/ui/button";
@@ -8,8 +8,22 @@ import { Button } from "../Components/ui/button";
 import { Label } from "../Components/ui/label";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
+import apiClient from "../api/apiClient";
+
 export default function Login() {
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+  // We still need this for context updates if possible, or we manually trigger it
+  // Actually, AuthContext.login usually calls the API. 
+  // We might need to manually update the token in localStorage and AuthContext.
+  // Let's assume AuthContext exposes a way to set user, or we reload/redirect.
+  // For now, let's just use localStorage and reload which is a common pattern if context isn't exposed.
+  // Better: useContext(AuthContext) possibly has a 'setUser' or we can just call login() with the token?
+  // Checking AuthContext... likely it just has login(email, password).
+  // We'll handle token storage manually here and then redirect.
+
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,16 +33,54 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleSocialLogin = async (provider) => {
+    try {
+      setLoading(true);
+      setError("");
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Send to backend
+      try {
+        const res = await apiClient.post('/users/social-login', {
+          email: user.email,
+          name: user.displayName,
+          providerId: user.providerId
+        });
+
+        if (res.data.token) {
+          localStorage.setItem('token', res.data.token);
+          window.location.href = '/donordashboard';
+        }
+      } catch (backendErr) {
+        if (backendErr.response && backendErr.response.status === 404) {
+          // User not found, redirect to signup to select role
+          navigate('/signup', {
+            state: {
+              socialUser: {
+                email: user.email,
+                name: user.displayName
+              }
+            }
+          });
+          return;
+        }
+        throw backendErr;
+      }
+    } catch (err) {
+      console.error("Social login error:", err);
+      setError(err.message || "Social login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
       await login(form.email, form.password);
-      // The redirection is now handled by a useEffect in a parent component
-      // that listens for changes in the user state.
-      // This avoids race conditions where navigation happens before
-      // the user state is fully propagated.
     } catch (err) {
       setError("Invalid credentials or server error.");
     }
@@ -109,8 +161,8 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button" className="w-full border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white" onClick={() => alert("Google Login logic here")}>
+            <div className="grid grid-cols-1 gap-4">
+              <Button variant="outline" type="button" className="w-full border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white" onClick={() => handleSocialLogin(googleProvider)} disabled={loading}>
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -129,17 +181,7 @@ export default function Login() {
                     fill="#EA4335"
                   />
                 </svg>
-                Google
-              </Button>
-              <Button variant="outline" type="button" className="w-full border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white" onClick={() => alert("Microsoft Login logic here")}>
-                <svg className="mr-2 h-4 w-4" viewBox="0 0 23 23">
-                  <path fill="#f3f3f3" d="M0 0h23v23H0z" />
-                  <path fill="#f35325" d="M1 1h10v10H1z" />
-                  <path fill="#81bc06" d="M12 1h10v10H12z" />
-                  <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                  <path fill="#ffba08" d="M12 12h10v10H12z" />
-                </svg>
-                Microsoft
+                Continue with Google
               </Button>
             </div>
           </form>

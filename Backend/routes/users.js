@@ -62,6 +62,72 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// POST /api/donors/social-login - Login or Register with Google/Microsoft
+router.post('/social-login', async (req, res) => {
+    const { email, name, providerId } = req.body;
+
+    try {
+        let user = await User.findOne({ email });
+
+        if (user) {
+            // User exists, generate token
+            const payload = {
+                user: {
+                    id: user.id,
+                    role: user.role
+                }
+            };
+
+            jwt.sign(
+                payload,
+                process.env.JWT_SECRET || 'your_jwt_secret',
+                { expiresIn: '5h' },
+                (err, token) => {
+                    if (err) throw err;
+                    res.json({ token });
+                }
+            );
+        } else {
+            // New user, register them automatically
+            // Generate a random password since they won't use it
+            const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+
+            user = new User({
+                name: name || 'Social User',
+                email,
+                password: randomPassword,
+                role: 'Donor', // Default role
+                isSocialLogin: true
+            });
+
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(randomPassword, salt);
+
+            await user.save();
+
+            const payload = {
+                user: {
+                    id: user.id,
+                    role: user.role
+                }
+            };
+
+            jwt.sign(
+                payload,
+                process.env.JWT_SECRET || 'your_jwt_secret',
+                { expiresIn: '5h' },
+                (err, token) => {
+                    if (err) throw err;
+                    res.json({ token });
+                }
+            );
+        }
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 // POST /api/donors/login - Authenticate donor and get token
 router.post('/login', async (req, res) => {
     const { email, password, phone_number } = req.body;
