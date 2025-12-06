@@ -59,7 +59,8 @@ export default function Login() {
             state: {
               socialUser: {
                 email: user.email,
-                name: user.displayName
+                name: user.displayName,
+                providerId: user.providerId
               }
             }
           });

@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Donation = require('../models/Donation');
-const auth = require('../middleware/auth'); // We will create this middleware
+const auth = require('../middleware/auth');
 
 // GET /api/users - List all users (for admin dashboard/lists)
 router.get('/', async (req, res) => {
@@ -62,9 +62,10 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// POST /api/donors/social-login - Login or Register with Google/Microsoft
+// POST /api/donors/social-login - Login or Register with Google
 router.post('/social-login', async (req, res) => {
-    const { email, name, providerId } = req.body;
+    const { email, name, providerId, role } = req.body;
+    console.log('Social Login Request Body:', req.body); // DEBUG LOG
 
     try {
         let user = await User.findOne({ email });
@@ -88,7 +89,12 @@ router.post('/social-login', async (req, res) => {
                 }
             );
         } else {
-            // New user, register them automatically
+            // New user
+            // If role is not provided, we cannot register them yet.
+            if (!role) {
+                return res.status(404).json({ msg: 'User not found. Please sign up to select your role.', requiresSignup: true });
+            }
+
             // Generate a random password since they won't use it
             const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
@@ -96,7 +102,7 @@ router.post('/social-login', async (req, res) => {
                 name: name || 'Social User',
                 email,
                 password: randomPassword,
-                role: 'Donor', // Default role
+                role: role, // Use provided role
                 isSocialLogin: true
             });
 
@@ -132,8 +138,7 @@ router.post('/social-login', async (req, res) => {
 router.post('/login', async (req, res) => {
     const { email, password, phone_number } = req.body;
 
-    // Allow login with either email or phone_number (sent as 'email' from frontend usually, or we can adapt)
-    // Let's assume the frontend might send 'email' field containing either email or phone
+    // Allow login with either email or phone_number
     const identifier = email || phone_number;
 
     if (!identifier) {
@@ -141,14 +146,12 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        // Check if identifier is an email or phone number
         let query = {};
         const isEmail = identifier.includes('@');
 
         if (isEmail) {
             query = { email: identifier };
         } else {
-            // Assume it's a phone number
             query = { phone_number: identifier };
         }
 
@@ -188,7 +191,6 @@ router.post('/login', async (req, res) => {
 // GET /api/users/me - Get current user details (for AuthContext)
 router.get('/me', auth, async (req, res) => {
     try {
-        // req.user.id comes from the auth middleware
         const user = await User.findById(req.user.id).select('-password');
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
@@ -203,20 +205,17 @@ router.get('/me', auth, async (req, res) => {
 // GET /api/users/dashboard - Efficient dashboard data for a user
 router.get('/dashboard', auth, async (req, res) => {
     try {
-        // req.user.id is from the auth middleware
         const user = await User.findById(req.user.id).select('-password');
         if (!user) {
-            // This case might happen if the user was deleted but the token is still valid
             return res.status(404).json({ msg: 'User not found' });
         }
 
         // Get stats
-        // Use 'donor' field instead of 'donor_id' as per the schema update
         console.log(`[Dashboard] Fetching donations for donor: ${req.user.id}`);
         const donations = await Donation.find({ donor: new mongoose.Types.ObjectId(req.user.id) }).populate('pool');
         console.log(`[Dashboard] Found ${donations.length} donations`);
 
-        // Calculate Impact Created: Average percentage of contribution across pools
+        // Calculate Impact Created
         const poolContributions = {};
         donations.forEach(d => {
             if (d.pool && d.pool.target_amount > 0) {
@@ -241,18 +240,16 @@ router.get('/dashboard', auth, async (req, res) => {
         const stats = {
             totalDonations: donations.length,
             totalAmount: donations.reduce((sum, d) => sum + (d.amount || 0), 0),
-            impactCreated: impactCreated, // Replaces peopleHelped
+            impactCreated: impactCreated,
             confirmedDeliveries: donations.filter(d => d.status === 'confirmed').length,
         };
 
         // Get recent donations
         const recentDonations = await Donation.find({ donor: new mongoose.Types.ObjectId(req.user.id) })
-            .sort({ createdAt: -1 }) // Use createdAt for more reliable sorting
+            .sort({ createdAt: -1 })
             .limit(5)
-            .populate('receiver_id'); // Populate receiver details
-
+            .populate('receiver_id');
         res.json({
-            // The frontend expects a 'donor' object, so we'll alias 'user'
             donor: user,
             stats,
             recentDonations,
@@ -268,16 +265,13 @@ router.get('/donations', auth, async (req, res) => {
     try {
         const donations = await Donation.find({ donor: req.user.id })
             .sort({ createdAt: -1 })
-            .populate('receiver_id'); // Keep populating for now, though receiver might be null
+            .populate('receiver_id');
         res.json(donations);
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Server Error' });
     }
 });
-
-
-
 
 // PUT /api/users/me - Update current user details
 router.put('/me', auth, async (req, res) => {

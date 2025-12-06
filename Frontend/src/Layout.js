@@ -29,6 +29,8 @@ import NotificationDropdown from "./Components/ui/NotificationDropdown";
 import { Button } from "./Components/ui/button";
 
 
+import LogoutModal from "./Components/LogoutModal";
+
 const donorNavigationItems = [
   { title: "Donor Dashboard", url: createPageUrl("donordashboard"), icon: LayoutDashboard, component: DonorDashboard },
   { title: "Create Donation", url: createPageUrl("createdonation"), icon: Gift, component: CreateDonation },
@@ -58,6 +60,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
 
   const logoSrc = theme === 'dark' ? '/assets/images/logo-dark.png' : '/assets/images/logo-light.png';
 
@@ -74,6 +77,12 @@ export default function Layout() {
       }
     }
   }, [user, navigate, location.pathname]);
+
+  const handleLogoutConfirm = () => {
+    logout();
+    setIsLogoutModalOpen(false);
+    navigate('/home');
+  };
 
   // Determine if the sidebar should be shown based on the current route
   const noSidebarRoutes = ["/home", "/", "/login", "/signup"];
@@ -93,9 +102,14 @@ export default function Layout() {
 
   return (
     <div className={`min-h-screen w-full ${showSidebar ? 'flex' : ''} bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300`}>
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
       <div className={`${!showSidebar ? 'bg-zinc-50 dark:bg-zinc-950' : ''} absolute inset-0 -z-10 transition-colors duration-300`} />
       {showSidebar ? (
-        <Sidebar className="border-r border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm flex flex-col h-screen transition-colors duration-300">
+        <Sidebar className="border-r border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm flex flex-col min-h-screen transition-colors duration-300">
           <div className="p-6">
             <div className="flex items-center justify-center gap-3">
               <img src={logoSrc} alt="Say Whatt Logo" className="h-32 w-auto object-contain" />
@@ -122,21 +136,7 @@ export default function Layout() {
                 </div>
               </div>
             </div>
-            <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to logout?')) {
-                    logout();
-                    navigate('/home');
-                  }
-                }}
-              >
-                <LogOut className="w-5 h-5 mr-3" />
-                Logout
-              </Button>
-            </div>
+
           </div>
         </Sidebar>
       ) : (
@@ -174,11 +174,20 @@ export default function Layout() {
             <div className="flex items-center gap-4">
               <ThemeToggle />
               <NotificationDropdown align="right" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                title="Logout"
+                onClick={() => setIsLogoutModalOpen(true)}
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
             </div>
           </header>
         )}
         <div className="flex-1 overflow-auto flex flex-col relative">
-          <div className={`flex-1 ${!showSidebar ? '' : 'p-6'}`}>
+          <div className="flex-1">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />

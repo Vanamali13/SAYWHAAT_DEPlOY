@@ -127,7 +127,6 @@ export default function CreateDonation() {
                   >
                     <SelectItem value="garments">Garments</SelectItem>
                     <SelectItem value="money">Money</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
                   </Select>
                 </div>
               </div>
@@ -221,7 +220,7 @@ export default function CreateDonation() {
                             id={`item-name-${index}`}
                             value={item.name}
                             onChange={(e) => handleItemChange(index, 'name', e.target.value)}
-                            placeholder="e.g., Rice Bag"
+                            placeholder="e.g., Shirt, T-shirt, Pants"
                             className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                           />
                         </div>
