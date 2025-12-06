@@ -64,10 +64,29 @@ router.post('/register', async (req, res) => {
 
 // POST /api/donors/login - Authenticate donor and get token
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, phone_number } = req.body;
+
+    // Allow login with either email or phone_number (sent as 'email' from frontend usually, or we can adapt)
+    // Let's assume the frontend might send 'email' field containing either email or phone
+    const identifier = email || phone_number;
+
+    if (!identifier) {
+        return res.status(400).json({ msg: 'Please provide email or phone number' });
+    }
 
     try {
-        let user = await User.findOne({ email });
+        // Check if identifier is an email or phone number
+        let query = {};
+        const isEmail = identifier.includes('@');
+
+        if (isEmail) {
+            query = { email: identifier };
+        } else {
+            // Assume it's a phone number
+            query = { phone_number: identifier };
+        }
+
+        let user = await User.findOne(query);
         if (!user) {
             return res.status(400).json({ msg: 'Invalid Credentials' });
         }
