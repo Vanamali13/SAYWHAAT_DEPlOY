@@ -3,6 +3,7 @@ import { Link, useLocation, Routes, Route, Navigate, useNavigate } from "react-r
 import { createPageUrl } from "./utils/utils";
 import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History, Layers, Truck, User } from "lucide-react";
 import { Sidebar } from "./Components/ui/sidebar";
+import Footer from "./Components/Footer";
 import HomePage from "./Pages/home";
 import AdminDashboard from "./Pages/AdminDashboard";
 import DonorDashboard from "./Pages/DonorDashboard";
@@ -18,6 +19,7 @@ import SignUp from "./Pages/SignUp";
 import Profile from "./Pages/Profile";
 import Payment from "./Pages/Payment";
 import { AuthContext } from "./context/authContext";
+import { ThemeContext } from "./context/ThemeContext";
 import DonationRequests from "./Pages/DonationRequests";
 import DonationHistory from "./Pages/DonationHistory";
 import Pools from "./Pages/Pools";
@@ -55,6 +57,9 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
+
+  const logoSrc = theme === 'dark' ? '/assets/images/logo-dark.png' : '/assets/images/logo-light.png';
 
   useEffect(() => {
     const authPages = ['/login', '/signup'];
@@ -92,16 +97,8 @@ export default function Layout() {
       {showSidebar ? (
         <Sidebar className="border-r border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm flex flex-col h-screen transition-colors duration-300">
           <div className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-200 dark:border-zinc-700">
-                <Heart className="w-6 h-6 text-zinc-900 dark:text-white fill-zinc-900 dark:fill-white" />
-              </div>
-              <div>
-                <h2 className="font-bold text-lg text-zinc-900 dark:text-white">
-                  Say Whatt
-                </h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">Transparent Giving</p>
-              </div>
+            <div className="flex items-center justify-center gap-3">
+              <img src={logoSrc} alt="Say Whatt Logo" className="h-32 w-auto object-contain" />
             </div>
           </div>
           <div className="flex-1 flex flex-col justify-between">
@@ -145,17 +142,14 @@ export default function Layout() {
       ) : (
         <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-300">
           <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-            <Link to={createPageUrl("home")} className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-lg border border-zinc-200 dark:border-zinc-700">
-                <Heart className="w-6 h-6 text-zinc-900 dark:text-white fill-zinc-900 dark:fill-white" />
-              </div>
-              <div>
-                <h2 className="font-bold text-lg text-zinc-900 dark:text-white">
-                  Say Whatt
-                </h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">Transparent Giving</p>
-              </div>
-            </Link>
+            {/* Hide logo on home page as it is displayed in the hero section */}
+            {(location.pathname !== "/" && location.pathname !== "/home") ? (
+              <Link to={createPageUrl("home")} className="flex items-center gap-3">
+                <img src={logoSrc} alt="Say Whatt Logo" className="h-10 w-auto object-contain" />
+              </Link>
+            ) : (
+              <div /> // Spacer to keep flex layout working if needed, or just nothing
+            )}
             <div className="flex items-center gap-4">
               {user && <NotificationDropdown align="right" />}
               <ThemeToggle />
@@ -183,27 +177,30 @@ export default function Layout() {
             </div>
           </header>
         )}
-        <div className={`flex-1 overflow-auto ${!showSidebar ? '' : 'p-6'}`}>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/donordashboard" element={user ? <DonorDashboard /> : <Navigate to="/login" replace />} />
-            <Route path="/admin-dashboard" element={user && user.role === 'Administrator' ? <AdminDashboard /> : <Navigate to="/login" replace />} />
-            <Route path="/donation-requests" element={user && user.role === 'Administrator' ? <DonationRequests /> : <Navigate to="/login" replace />} />
-            <Route path="/donation-history" element={user ? <DonationHistory /> : <Navigate to="/login" replace />} />
-            <Route path="/donorslist" element={user && user.role === 'Administrator' ? <DonorsList /> : <Navigate to="/login" replace />} />
-            <Route path="/batchstafflist" element={user && user.role === 'Administrator' ? <BatchStaffList /> : <Navigate to="/login" replace />} />
-            <Route path="/batch-staff-dashboard" element={user && user.role === 'Batch staff' ? <BatchStaffDashboard /> : <Navigate to="/login" replace />} />
-            <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
-            <Route path="/" element={<HomePage />} />
-            <Route path="/home" element={<HomePage />} />
-            {/* Remove navigationItems.map, use sidebarItems.map instead */}
-            {sidebarItems.map(item => (
-              <Route key={item.url} path={item.url} element={user ? <item.component /> : <Navigate to="/login" replace />} />
-            ))}
-            <Route path="/donations/:id" element={user ? <DonationDetails /> : <Navigate to="/login" replace />} />
-            <Route path="/payment" element={user ? <Payment /> : <Navigate to="/login" replace />} />
-          </Routes>
+        <div className="flex-1 overflow-auto flex flex-col relative">
+          <div className={`flex-1 ${!showSidebar ? '' : 'p-6'}`}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/donordashboard" element={user ? <DonorDashboard /> : <Navigate to="/login" replace />} />
+              <Route path="/admin-dashboard" element={user && user.role === 'Administrator' ? <AdminDashboard /> : <Navigate to="/login" replace />} />
+              <Route path="/donation-requests" element={user && user.role === 'Administrator' ? <DonationRequests /> : <Navigate to="/login" replace />} />
+              <Route path="/donation-history" element={user ? <DonationHistory /> : <Navigate to="/login" replace />} />
+              <Route path="/donorslist" element={user && user.role === 'Administrator' ? <DonorsList /> : <Navigate to="/login" replace />} />
+              <Route path="/batchstafflist" element={user && user.role === 'Administrator' ? <BatchStaffList /> : <Navigate to="/login" replace />} />
+              <Route path="/batch-staff-dashboard" element={user && user.role === 'Batch staff' ? <BatchStaffDashboard /> : <Navigate to="/login" replace />} />
+              <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/home" element={<HomePage />} />
+              {/* Remove navigationItems.map, use sidebarItems.map instead */}
+              {sidebarItems.map(item => (
+                <Route key={item.url} path={item.url} element={user ? <item.component /> : <Navigate to="/login" replace />} />
+              ))}
+              <Route path="/donations/:id" element={user ? <DonationDetails /> : <Navigate to="/login" replace />} />
+              <Route path="/payment" element={user ? <Payment /> : <Navigate to="/login" replace />} />
+            </Routes>
+          </div>
+          <Footer />
         </div>
       </main>
     </div>

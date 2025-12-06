@@ -130,7 +130,7 @@ const DonorDashboard = () => {
               </div>
             </div>
             <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800/50 flex justify-end">
-              <span className="text-xs text-zinc-500 dark:text-zinc-600 font-mono">ID: {donor.donorId}</span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-600 font-mono">ID: {donor._id}</span>
             </div>
           </CardContent>
         </Card>

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { ThemeContext } from "../context/ThemeContext";
 import apiClient from "../api/apiClient";
 import { Button } from "../Components/ui/button";
 import { Badge } from "../Components/ui/badge";
@@ -12,6 +13,8 @@ export default function Home() {
   // For now, use static stats and unauthenticated state to avoid errors
   const [isAuthenticated] = useState(false);
   const [stats, setStats] = useState({ donations: 0, receivers: 0, amount: 0 });
+  const { theme } = useContext(ThemeContext);
+  const logoSrc = theme === 'dark' ? '/assets/images/logo-dark.png' : '/assets/images/logo-light.png';
 
   useEffect(() => {
     async function fetchStats() {
@@ -59,12 +62,17 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white transition-colors duration-300">
         <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:40px_40px]" />
-        <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32">
+        <div className="relative max-w-7xl mx-auto px-6 pt-4 pb-24 md:pt-10 md:pb-32">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-8"
+            className="text-center space-y-4"
           >
+            {/* Main Logo in Hero */}
+            <div className="flex justify-center mb-0">
+              <img src={logoSrc} alt="Say Whatt Logo" className="h-96 w-auto object-contain" />
+            </div>
+
             <div className="inline-block">
               <Badge variant="outline" className="bg-white/80 dark:bg-zinc-900/80 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-700 backdrop-blur-md px-6 py-2 text-sm font-medium shadow-lg hover:bg-white dark:hover:bg-zinc-800 transition-all">
                 Transparent • Verified • Trustworthy
