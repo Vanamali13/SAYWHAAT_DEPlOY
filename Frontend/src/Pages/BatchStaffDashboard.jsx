@@ -1,18 +1,51 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getBatchStats } from "../api/batchStaffApi";
+import apiClient from "../api/apiClient";
 import { Card, CardContent } from "../Components/ui/card";
 import { Badge } from "../Components/ui/badge";
-import { TrendingUp, CheckCircle, Loader2, Package, LayoutDashboard } from "lucide-react";
+import { TrendingUp, CheckCircle, Loader2, Package } from "lucide-react";
 import { format } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 
 export default function BatchStaffDashboard() {
   const navigate = useNavigate();
-  const { data: stats, isLoading, isError } = useQuery({
-    queryKey: ["batch-staff-stats"],
-    queryFn: getBatchStats,
+
+  // Single query for batches, used for both stats and list
+  const { data: batches, isLoading, isError } = useQuery({
+    queryKey: ['myBatches'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/batches/my-batches');
+      return data;
+    }
   });
+
+  // Calculate stats from batches
+  const stats = React.useMemo(() => {
+    if (!batches) return { assignedThisMonth: 0, delivered: 0, ongoing: 0 };
+
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+
+    let assignedThisMonth = 0;
+    let delivered = 0;
+    let ongoing = 0;
+
+    batches.forEach(batch => {
+      const created = new Date(batch.createdAt);
+      if (created.getMonth() === thisMonth && created.getFullYear() === thisYear) {
+        assignedThisMonth++;
+      }
+
+      if (batch.status === 'delivered') {
+        delivered++;
+      } else if (batch.status === 'in_transit' || batch.status === 'assigned' || batch.status === 'created') {
+        ongoing++;
+      }
+    });
+
+    return { assignedThisMonth, delivered, ongoing };
+  }, [batches]);
 
   if (isLoading) {
     return (
@@ -23,7 +56,7 @@ export default function BatchStaffDashboard() {
   }
 
   if (isError) {
-    return <div className="min-h-screen p-6 bg-zinc-50 dark:bg-zinc-950 text-red-500 flex items-center justify-center">Failed to load stats.</div>;
+    return <div className="min-h-screen p-6 bg-zinc-50 dark:bg-zinc-950 text-red-500 flex items-center justify-center">Failed to load dashboard data.</div>;
   }
 
   return (
@@ -45,9 +78,9 @@ export default function BatchStaffDashboard() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { label: "Assigned Batches", value: stats?.assignedThisMonth ?? 0, icon: Package, color: "blue", gradient: "from-blue-500 to-blue-600", link: "/uploadproof" },
-            { label: "Delivered Batches", value: stats?.delivered ?? 0, icon: CheckCircle, color: "green", gradient: "from-emerald-500 to-emerald-600", link: "/uploadproof" },
-            { label: "Ongoing Batches", value: stats?.ongoing ?? 0, icon: TrendingUp, color: "yellow", gradient: "from-yellow-500 to-yellow-600", link: "/uploadproof" }
+            { label: "Assigned Batches", value: stats.assignedThisMonth, icon: Package, color: "blue", gradient: "from-blue-500 to-blue-600", link: "/assigned-batches" },
+            { label: "Delivered Batches", value: stats.delivered, icon: CheckCircle, color: "green", gradient: "from-emerald-500 to-emerald-600", link: "/assigned-batches" },
+            { label: "Ongoing Batches", value: stats.ongoing, icon: TrendingUp, color: "yellow", gradient: "from-yellow-500 to-yellow-600", link: "/assigned-batches" }
           ].map((stat, idx) => (
             <Card
               key={idx}
@@ -69,24 +102,14 @@ export default function BatchStaffDashboard() {
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
             <Package className="w-5 h-5" /> Your Assignments
           </h2>
-          <AssignedBatchesList />
+          <AssignedBatchesList batches={batches} />
         </div>
       </div>
     </div>
   );
 }
 
-function AssignedBatchesList() {
-  const { data: batches, isLoading, error } = useQuery({
-    queryKey: ['myBatches'],
-    queryFn: async () => {
-      const { data } = await import('../api/apiClient').then(m => m.default.get('/batches/my-batches'));
-      return data;
-    }
-  });
-
-  if (isLoading) return <div className="text-center p-4"><Loader2 className="w-6 h-6 animate-spin mx-auto text-zinc-500" /></div>;
-  if (error) return <div className="text-center text-red-500 p-4">Failed to load batches</div>;
+function AssignedBatchesList({ batches }) {
   if (!batches || batches.length === 0) return (
     <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 text-zinc-500">
       No batches assigned currently.
@@ -109,7 +132,7 @@ function AssignedBatchesList() {
                           'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
                     }
                   >
-                    {batch.status.replace('_', ' ')}
+                    {batch.status ? batch.status.replace('_', ' ') : 'UNKNOWN'}
                   </Badge>
                 </div>
                 <p className="text-sm text-zinc-500">{format(new Date(batch.createdAt), 'PPP')}</p>
@@ -126,7 +149,7 @@ function AssignedBatchesList() {
                       {item.quantity} x {item.item_name}
                     </span>
                     <span className="text-zinc-400 text-xs">
-                      (Item ID: {item.donation_id.slice(-6)}...)
+                      (Item ID: {item.donation_id ? item.donation_id.slice(-6) : 'N/A'}...)
                     </span>
                   </li>
                 ))}
