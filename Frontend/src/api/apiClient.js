@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create an axios instance
 const apiClient = axios.create({
   // Use environment variable for production, fallback to proxy for dev
-  baseURL: process.env.REACT_APP_API_URL || '/api',
+  baseURL: (process.env.REACT_APP_API_URL || '') + '/api',
 });
 
 // Add a request interceptor to include the token in every request
