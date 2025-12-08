@@ -13,6 +13,8 @@ import BatchStaffList from "./Pages/BatchStaffList";
 import CreateDonation from "./Pages/CreateDonation";
 import CreateBatch from "./Pages/CreateBatch";
 import AssignedBatches from "./Pages/AssignedBatches";
+import AssignedCollections from "./Pages/AssignedCollections";
+import AssignCollection from "./Pages/AssignCollection";
 import RegisterReceiver from "./Pages/RegisterReceiver";
 import UploadProof from "./Pages/UploadProof";
 import DonationDetails from "./Pages/DonationDetails";
@@ -43,12 +45,14 @@ const donorNavigationItems = [
 const batchStaffNavigationItems = [
   { title: "Batch Staff Dashboard", url: createPageUrl("batch-staff-dashboard"), icon: LayoutDashboard, component: BatchStaffDashboard },
   { title: "Assigned Batches", url: createPageUrl("assigned-batches"), icon: Package, component: AssignedBatches },
+  { title: "Assigned Collections", url: createPageUrl("assigned-collections"), icon: Truck, component: AssignedCollections },
   { title: "Upload Proof", url: createPageUrl("uploadproof"), icon: Upload, component: UploadProof },
   { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
 ];
 
 const adminNavigationItems = [
   { title: "Admin Dashboard", url: createPageUrl("admin-dashboard"), icon: LayoutDashboard, component: AdminDashboard },
+  { title: "Assign Collections", url: createPageUrl("assign-collection"), icon: Truck, component: AssignCollection },
   { title: "Create Batch", url: createPageUrl("create-batch"), icon: Package, component: CreateBatch },
   { title: "Donation Requests", url: createPageUrl("donation-requests"), icon: ListChecks, component: DonationRequests },
   { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },

@@ -296,4 +296,55 @@ router.post('/create-batch', [auth, adminAuth], async (req, res) => {
     }
 });
 
+// @route   GET /api/admin/collections/pending
+// @desc    Get donations pending collection assignment
+// @access  Private (Admin)
+router.get('/collections/pending', auth, adminAuth, async (req, res) => {
+    try {
+        const donations = await Donation.find({
+            status: { $in: ['pending', 'confirmed'] },
+            donation_type: 'garments', // Filter for garments only
+            $or: [
+                { collection_status: 'pending' },
+                { collection_status: { $exists: false } }
+            ]
+        }).populate('donor', 'name email').sort({ createdAt: -1 });
+        res.json(donations);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   POST /api/admin/collections/:id/assign
+// @desc    Assign staff to a donation collection
+// @access  Private (Admin)
+router.post('/collections/:id/assign', auth, adminAuth, async (req, res) => {
+    const { staffIds } = req.body;
+    try {
+        const donation = await Donation.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ msg: 'Donation not found' });
+        }
+
+        donation.assigned_staff = staffIds;
+        donation.collection_status = 'assigned';
+        await donation.save();
+
+        // Notify Assigned Staff
+        for (const staffId of staffIds) {
+            await Notification.create({
+                recipient: staffId,
+                message: `You have been assigned a new collection pickup (Donation #${donation.donationId || donation._id}). Check your Assigned Collections.`,
+                type: 'info'
+            });
+        }
+
+        res.json(donation);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

@@ -24,6 +24,7 @@ export default function CreateDonation() {
     garment_type: "",
     delivery_notes: "",
     scheduled_delivery: "",
+    address: "", // Added address field
     join_pool: false // Added for money donations
   });
 
@@ -96,6 +97,18 @@ export default function CreateDonation() {
       delete finalData.join_pool; // Ensure join_pool is not sent for non-money donations
     }
     if (formData.donation_type !== 'garments') delete finalData.garment_type;
+
+    // Ensure address and scheduled_delivery are included for non-money donations
+    if (formData.donation_type !== 'money') {
+      if (!finalData.address) {
+        setFeedback({ type: 'error', message: 'Please provide a pickup address.' });
+        return;
+      }
+      if (!finalData.scheduled_delivery) {
+        setFeedback({ type: 'error', message: 'Please provide a preferred pickup time.' });
+        return;
+      }
+    }
 
     createDonationMutation.mutate(finalData);
   };
@@ -254,28 +267,41 @@ export default function CreateDonation() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 {formData.donation_type !== 'money' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="scheduled_delivery" className="text-zinc-500 dark:text-zinc-400">Scheduled Delivery Date</Label>
-                    <Input
-                      id="scheduled_delivery"
-                      type="date"
-                      value={formData.scheduled_delivery}
-                      onChange={(e) => setFormData(prev => ({ ...prev, scheduled_delivery: e.target.value }))}
-                      className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="address" className="text-zinc-500 dark:text-zinc-400">Pickup Address</Label>
+                      <Textarea
+                        id="address"
+                        placeholder="Full address for pickup"
+                        value={formData.address}
+                        onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                        className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="scheduled_delivery" className="text-zinc-500 dark:text-zinc-400">Preferred Pickup Date & Time</Label>
+                      <Input
+                        id="scheduled_delivery"
+                        type="datetime-local"
+                        value={formData.scheduled_delivery}
+                        onChange={(e) => setFormData(prev => ({ ...prev, scheduled_delivery: e.target.value }))}
+                        className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+                      />
+                    </div>
+                  </>
                 )}
-                <div className="space-y-2">
-                  <Label htmlFor="delivery_notes" className="text-zinc-500 dark:text-zinc-400">Delivery Notes</Label>
-                  <Textarea
-                    id="delivery_notes"
-                    placeholder="Any special instructions for delivery..."
-                    value={formData.delivery_notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, delivery_notes: e.target.value }))}
-                    className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
-                  />
-                </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="delivery_notes" className="text-zinc-500 dark:text-zinc-400">Delivery Notes</Label>
+                <Textarea
+                  id="delivery_notes"
+                  placeholder="Any special instructions for delivery..."
+                  value={formData.delivery_notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, delivery_notes: e.target.value }))}
+                  className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+                />
+              </div>
+
 
               <div className="flex justify-end">
                 <Button type="submit" size="lg" className="px-6 py-3 text-white dark:text-black bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-lg" disabled={createDonationMutation.isLoading || (formData.donation_type === 'money' && parseFloat(formData.amount || '0') < 100)} onClick={() => console.log('[CreateDonation] Submit button clicked')}>
@@ -291,6 +317,6 @@ export default function CreateDonation() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div >
   );
 }
