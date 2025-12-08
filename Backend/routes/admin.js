@@ -72,6 +72,7 @@ router.get('/pending-donations', [auth, adminAuth], async (req, res) => {
 
 const Pool = require('../models/Pool');
 const Notification = require('../models/Notification');
+const Batch = require('../models/Batch');
 
 // ... (existing imports)
 
@@ -173,5 +174,126 @@ router.post('/donations/:id/reject', [auth, adminAuth], async (req, res) => {
     }
 });
 
+// @route   GET /api/admin/available-items
+// @desc    Get all garment items available for batching
+// @access  Private (Admin only)
+router.get('/available-items', [auth, adminAuth], async (req, res) => {
+    try {
+        // Find donations that are approved (status 'pending' or 'confirmed') and are garments
+        const donations = await Donation.find({
+            status: { $in: ['pending', 'confirmed'] },
+            donation_type: { $regex: /garments/i } // Case insensitive match
+        }).populate('donor', 'name email');
+
+        let availableItems = [];
+
+        donations.forEach(donation => {
+            if (donation.items && donation.items.length > 0) {
+                donation.items.forEach(item => {
+                    const distributed = item.distributed || 0;
+                    const remaining = item.quantity - distributed;
+
+                    if (remaining > 0) {
+                        availableItems.push({
+                            donation_id: donation._id,
+                            item_id: item._id,
+                            donor_name: donation.donor ? donation.donor.name : 'Unknown Donor',
+                            donor_email: donation.donor ? donation.donor.email : 'N/A',
+                            item_name: item.name,
+                            category: item.category,
+                            total_quantity: item.quantity,
+                            remaining_quantity: remaining,
+                            distributed: distributed
+                        });
+                    }
+                });
+            }
+        });
+
+        res.json(availableItems);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   GET /api/admin/batch-staff
+// @desc    Get all batch staff users
+// @access  Private (Admin only)
+router.get('/batch-staff', [auth, adminAuth], async (req, res) => {
+    try {
+        const staff = await User.find({ role: 'Batch staff' }).select('name email _id');
+        res.json(staff);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   POST /api/admin/create-batch
+// @desc    Create a new batch and assign items
+// @access  Private (Admin only)
+router.post('/create-batch', [auth, adminAuth], async (req, res) => {
+    const { items, assigned_to, notes } = req.body;
+
+    try {
+        const batchItems = [];
+
+        for (const batchItem of items) {
+            const donation = await Donation.findById(batchItem.donation_id);
+            if (!donation) {
+                return res.status(404).json({ msg: `Donation not found for item ${batchItem.item_name}` });
+            }
+
+            const item = donation.items.id(batchItem.item_id); // Use Mongoose subdocument .id() method
+            if (!item) {
+                return res.status(404).json({ msg: `Item ${batchItem.item_name} not found in donation` });
+            }
+
+            const currentDistributed = item.distributed || 0;
+            // Validate: requested quantity vs available
+            // Note: batchItem.quantity is what we want to add to this batch
+            if ((currentDistributed + batchItem.quantity) > item.quantity) {
+                return res.status(400).json({ msg: `Not enough quantity for ${item.name}. Available: ${item.quantity - currentDistributed}` });
+            }
+
+            // Update distributed count
+            item.distributed = currentDistributed + batchItem.quantity;
+            await donation.save();
+
+            // Populate donor info for the Batch record
+            let donorName = 'Unknown';
+            if (donation.donor) {
+                const donor = await User.findById(donation.donor);
+                if (donor) donorName = donor.name;
+            }
+
+            batchItems.push({
+                donation_id: donation._id,
+                item_name: item.name,
+                quantity: batchItem.quantity,
+                donor_name: donorName
+            });
+        }
+
+        const batchId = 'BATCH-' + Date.now().toString(36).toUpperCase();
+
+        const newBatch = new Batch({
+            batchId,
+            assigned_to,
+            status: assigned_to ? 'assigned' : 'created',
+            items: batchItems,
+            notes
+        });
+
+        await newBatch.save();
+
+        res.json(newBatch);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
 module.exports = router;

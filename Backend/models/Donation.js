@@ -15,7 +15,12 @@ const DonationSchema = new mongoose.Schema({
     pool: { type: mongoose.Schema.Types.ObjectId, ref: 'Pool' },
     donation_type: String,
     amount: Number,
-    items: [{ name: String, quantity: Number, category: String }],
+    items: [{
+        name: String,
+        quantity: Number,
+        category: String,
+        distributed: { type: Number, default: 0 } // Track how many of this item have been put into batches
+    }],
     status: {
         type: String,
         enum: ['pending_approval', 'rejected', 'pending', 'in_transit', 'delivered', 'confirmed'],

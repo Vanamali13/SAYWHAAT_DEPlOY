@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Link, useLocation, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { createPageUrl } from "./utils/utils";
-import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History, Layers, Truck, User } from "lucide-react";
+import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History, Layers, Truck, User, Package } from "lucide-react";
 import { Sidebar } from "./Components/ui/sidebar";
 import Footer from "./Components/Footer";
 import HomePage from "./Pages/home";
@@ -11,6 +11,8 @@ import BatchStaffDashboard from "./Pages/BatchStaffDashboard";
 import DonorsList from "./Pages/DonorsList";
 import BatchStaffList from "./Pages/BatchStaffList";
 import CreateDonation from "./Pages/CreateDonation";
+import CreateBatch from "./Pages/CreateBatch";
+import AssignedBatches from "./Pages/AssignedBatches";
 import RegisterReceiver from "./Pages/RegisterReceiver";
 import UploadProof from "./Pages/UploadProof";
 import DonationDetails from "./Pages/DonationDetails";
@@ -40,13 +42,14 @@ const donorNavigationItems = [
 
 const batchStaffNavigationItems = [
   { title: "Batch Staff Dashboard", url: createPageUrl("batch-staff-dashboard"), icon: LayoutDashboard, component: BatchStaffDashboard },
-  { title: "Register Receiver", url: createPageUrl("registerreceiver"), icon: Users, component: RegisterReceiver },
+  { title: "Assigned Batches", url: createPageUrl("assigned-batches"), icon: Package, component: AssignedBatches },
   { title: "Upload Proof", url: createPageUrl("uploadproof"), icon: Upload, component: UploadProof },
   { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
 ];
 
 const adminNavigationItems = [
   { title: "Admin Dashboard", url: createPageUrl("admin-dashboard"), icon: LayoutDashboard, component: AdminDashboard },
+  { title: "Create Batch", url: createPageUrl("create-batch"), icon: Package, component: CreateBatch },
   { title: "Donation Requests", url: createPageUrl("donation-requests"), icon: ListChecks, component: DonationRequests },
   { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
   { title: "Pools", url: createPageUrl("pools"), icon: Layers, component: Pools },

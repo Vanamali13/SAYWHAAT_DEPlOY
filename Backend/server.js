@@ -26,6 +26,8 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/pools', require('./routes/pools'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/batches', require('./routes/batches'));
+app.use('/api/upload', require('./routes/upload'));
 
 app.get('/', (req, res) => {
     res.send('Say Whatt Backend is running!');
