@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
 import { Badge } from "../Components/ui/badge";
 import { Button } from "../Components/ui/button";
-import { ArrowLeft, MapPin, Calendar, Package, User, Mail, Phone } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Package, User, Mail, Phone, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils/utils";
@@ -165,6 +165,28 @@ export default function DonationDetails() {
               </div>
             </div>
 
+
+
+            {donation.assigned_staff && donation.assigned_staff.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                <h3 className="font-semibold mb-3 text-zinc-900 dark:text-white flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-zinc-500" /> Collection Staff Assigned
+                </h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {/* Assuming populated or we need to fetch. For now, assuming simply displaying count or we need to update usage */}
+                  {donation.assigned_staff.map((staffId, idx) => (
+                    <div key={idx} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center gap-3">
+                      <User className="w-8 h-8 p-1.5 bg-blue-100 text-blue-600 rounded-full" />
+                      <div>
+                        <p className="font-medium text-sm text-zinc-900 dark:text-white">Staff Member</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Assigned for pickup</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {donation.items && donation.items.length > 0 && (
               <div>
                 <h3 className="font-semibold mb-3 text-zinc-900 dark:text-white">Donated Items</h3>
@@ -244,6 +266,6 @@ export default function DonationDetails() {
         {/* Delivery Proofs */}
         <ProofGallery proofs={proofs} />
       </div>
-    </div>
+    </div >
   );
 }

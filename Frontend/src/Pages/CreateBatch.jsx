@@ -9,10 +9,12 @@ import { Label } from '../Components/ui/label';
 import { Select, SelectItem } from '../Components/ui/select';
 import { Loader2, Package, Plus, Trash2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
 
 export default function CreateBatch() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { addToast } = useToast();
     const [selectedItems, setSelectedItems] = useState([]); // Array of { ...item, batchQuantity }
     const [assignedStaff, setAssignedStaff] = useState('');
     const [notes, setNotes] = useState('');
@@ -41,18 +43,18 @@ export default function CreateBatch() {
             return data;
         },
         onSuccess: () => {
-            alert('Batch created successfully!');
+            addToast('Batch created successfully!', 'success');
             queryClient.invalidateQueries(['availableItems']);
             navigate('/admin-dashboard');
         },
         onError: (err) => {
-            alert(err.response?.data?.msg || 'Failed to create batch');
+            addToast(err.response?.data?.msg || 'Failed to create batch', 'error');
         },
     });
 
     const handleAddItem = (item, quantity) => {
         if (quantity <= 0 || quantity > item.remaining_quantity) {
-            alert('Invalid quantity');
+            addToast('Invalid quantity', 'error');
             return;
         }
 
@@ -77,11 +79,11 @@ export default function CreateBatch() {
 
     const handleSubmit = () => {
         if (selectedItems.length === 0) {
-            alert('Please add items to the batch');
+            addToast('Please add items to the batch', 'warning');
             return;
         }
         if (!assignedStaff) {
-            alert('Please assign a batch staff member');
+            addToast('Please assign a batch staff member', 'warning');
             return;
         }
 
@@ -160,7 +162,7 @@ export default function CreateBatch() {
                                                             const val = parseInt(qtyInput.value);
                                                             if (val) {
                                                                 if (val > availableToSelect) {
-                                                                    alert(`Only ${availableToSelect} items available`);
+                                                                    addToast(`Only ${availableToSelect} items available`, 'warning');
                                                                     return;
                                                                 }
                                                                 // We need to pass the cumulative quantity for the handler if updating, 

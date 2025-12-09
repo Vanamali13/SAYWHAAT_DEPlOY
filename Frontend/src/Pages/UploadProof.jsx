@@ -8,8 +8,10 @@ import { Label } from "../Components/ui/label";
 import { Textarea } from "../Components/ui/textarea";
 import { Select, SelectItem } from "../Components/ui/select";
 import { Upload, Camera, Loader2, CheckCircle, Package } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 export default function UploadProof() {
+  const { addToast } = useToast();
   const queryClient = useQueryClient();
   const [selectedBatch, setSelectedBatch] = useState("");
   const [uploadNotes, setUploadNotes] = useState("");
@@ -49,14 +51,14 @@ export default function UploadProof() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myBatches'] });
-      alert("Proofs uploaded successfully! Batch marked as Delivered.");
+      addToast("Proofs uploaded successfully! Batch marked as Delivered.", "success");
       setSelectedBatch("");
       setUploadNotes("");
       setFiles([]);
     },
     onError: (err) => {
       console.error(err);
-      alert("Failed to update batch status.");
+      addToast("Failed to update batch status.", "error");
     }
   });
 
@@ -67,7 +69,7 @@ export default function UploadProof() {
 
   const handleUpload = async () => {
     if (!selectedBatch || files.length === 0) {
-      alert("Please select a batch and upload at least one file");
+      addToast("Please select a batch and upload at least one file", "warning");
       return;
     }
 
@@ -93,7 +95,7 @@ export default function UploadProof() {
       });
 
     } catch (error) {
-      alert("Error uploading proofs. Please try again.");
+      addToast("Error uploading proofs. Please try again.", "error");
       console.error(error);
     } finally {
       setUploading(false);

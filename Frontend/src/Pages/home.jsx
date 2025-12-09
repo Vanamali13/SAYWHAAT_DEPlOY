@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card"
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils/utils";
 import { Heart, Gift, Users, Shield, TrendingUp, CheckCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   // For now, use static stats and unauthenticated state to avoid errors
@@ -15,6 +15,24 @@ export default function Home() {
   const [stats, setStats] = useState({ donations: 0, receivers: 0, amount: 0 });
   const { theme } = useContext(ThemeContext);
   const logoSrc = theme === 'dark' ? '/assets/images/logo-dark.png' : '/assets/images/logo-light.png';
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const carouselImages = [
+    '/assets/carousel/video.mp4'
+  ];
+
+  /* Safe access to current image */
+  const currentMedia = carouselImages[currentImageIndex] || carouselImages[0];
+
+  useEffect(() => {
+    // Only set up timer if we have multiple images
+    if (carouselImages.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [carouselImages.length]);
 
   useEffect(() => {
     async function fetchStats() {
@@ -60,33 +78,75 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white transition-colors duration-300">
-        <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:40px_40px]" />
-        <div className="relative max-w-7xl mx-auto px-6 pt-4 pb-24 md:pt-10 md:pb-32">
+      <div className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Carousel */}
+        {/* Background Carousel */}
+        <div className="absolute inset-0 z-0 bg-zinc-900">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentImageIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5 }}
+              className="absolute inset-0"
+            >
+              {(currentMedia && (currentMedia.endsWith('.mp4') || currentMedia.endsWith('.webm'))) ? (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                >
+                  <source src={currentMedia} type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  src={currentMedia}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  alt="Background"
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+          {/* Dark Overlay for readability - placed above images */}
+          <div className="absolute inset-0 bg-black/40 z-20" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center space-y-8 pt-20">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-4"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="space-y-6"
           >
-            {/* Main Logo in Hero */}
-            <div className="flex justify-center mb-0">
-              <img src={logoSrc} alt="Say Whatt Logo" className="h-96 w-auto object-contain" />
+            {/* Main Logo in Hero - Transparent/Opacity applied */}
+            <div className="flex justify-center mb-6">
+              {/* Always use white logo (logo-dark.png) for Hero section as it has dark background */}
+              <img
+                src="/assets/images/logo-dark.png"
+                alt="Say Whatt Logo"
+                className="h-72 w-auto object-contain opacity-80"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))' }}
+              />
             </div>
 
             <div className="inline-block">
-              <Badge variant="outline" className="bg-white/80 dark:bg-zinc-900/80 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-700 backdrop-blur-md px-6 py-2 text-sm font-medium shadow-lg hover:bg-white dark:hover:bg-zinc-800 transition-all">
+              <Badge variant="outline" className="!bg-black/20 !text-white !border-white/30 backdrop-blur-md px-6 py-2 text-sm font-medium shadow-sm">
                 Transparent • Verified • Trustworthy
               </Badge>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight text-zinc-900 dark:text-white">
+            <h1 className="text-5xl md:text-7xl font-bold leading-tight text-white tracking-tight drop-shadow-lg">
               Give with
-              <span className="block text-zinc-500 dark:text-zinc-400">
+              <span className="block text-white/80">
                 Complete Confidence
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-zinc-200 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
               Connect directly with verified receivers. Get photo and video proof of every donation.
               Experience transparent giving like never before.
             </p>
@@ -95,13 +155,13 @@ export default function Home() {
               {isAuthenticated ? (
                 <>
                   <Link to={createPageUrl("CreateDonation")}>
-                    <Button size="lg" className="bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-2xl px-8 py-6 text-lg">
+                    <Button size="lg" className="bg-white text-black hover:bg-zinc-200 shadow-xl px-8 py-6 text-lg border-2 border-transparent hover:scale-105 transition-all">
                       <Gift className="w-5 h-5 mr-2" />
                       Make a Donation
                     </Button>
                   </Link>
                   <Link to={createPageUrl("DonorDashboard")}>
-                    <Button size="lg" variant="outline" className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-8 py-6 text-lg backdrop-blur-sm">
+                    <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/20 px-8 py-6 text-lg backdrop-blur-sm">
                       View My Impact
                     </Button>
                   </Link>
@@ -110,7 +170,7 @@ export default function Home() {
                 <Link to={createPageUrl("SignUp")}>
                   <Button
                     size="lg"
-                    className="bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-2xl px-8 py-6 text-lg"
+                    className="bg-white text-black hover:bg-zinc-200 shadow-xl px-8 py-6 text-lg border-2 border-transparent hover:scale-105 transition-all"
                   >
                     Get Started
                   </Button>

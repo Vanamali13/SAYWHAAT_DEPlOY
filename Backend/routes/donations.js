@@ -100,4 +100,23 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+// @route   GET /api/donations/my-collections
+// @desc    Get donations assigned to the logged-in staff
+// @access  Private (Batch Staff)
+router.get('/my-collections', auth, async (req, res) => {
+    try {
+        const donations = await Donation.find({
+            assigned_staff: req.user.id,
+            collection_status: { $ne: 'collected' }
+        })
+            .populate('donor', 'name email phone_number')
+            .sort({ scheduled_delivery: 1 }); // Sort by pickup time
+
+        res.json(donations);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;
