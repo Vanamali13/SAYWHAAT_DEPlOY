@@ -7,7 +7,10 @@ import { Button } from '../Components/ui/button';
 import { CreditCard, Loader2, CheckCircle, ArrowLeft, DollarSign } from 'lucide-react';
 import { createPageUrl } from '../utils/utils';
 
+import { useToast } from '../context/ToastContext';
+
 export default function Payment() {
+    const { addToast } = useToast();
     const location = useLocation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -30,7 +33,7 @@ export default function Payment() {
         },
         onError: (error) => {
             setIsProcessing(false);
-            alert('Payment failed. Please try again.');
+            addToast('Payment failed. Please try again.', 'error');
             console.error(error);
         }
     });

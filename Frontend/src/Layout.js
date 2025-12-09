@@ -13,6 +13,8 @@ import BatchStaffList from "./Pages/BatchStaffList";
 import CreateDonation from "./Pages/CreateDonation";
 import CreateBatch from "./Pages/CreateBatch";
 import AssignedBatches from "./Pages/AssignedBatches";
+import AssignedCollections from "./Pages/AssignedCollections";
+import AssignCollection from "./Pages/AssignCollection";
 import RegisterReceiver from "./Pages/RegisterReceiver";
 import UploadProof from "./Pages/UploadProof";
 import DonationDetails from "./Pages/DonationDetails";
@@ -43,12 +45,14 @@ const donorNavigationItems = [
 const batchStaffNavigationItems = [
   { title: "Batch Staff Dashboard", url: createPageUrl("batch-staff-dashboard"), icon: LayoutDashboard, component: BatchStaffDashboard },
   { title: "Assigned Batches", url: createPageUrl("assigned-batches"), icon: Package, component: AssignedBatches },
+  { title: "Assigned Collections", url: createPageUrl("assigned-collections"), icon: Truck, component: AssignedCollections },
   { title: "Upload Proof", url: createPageUrl("uploadproof"), icon: Upload, component: UploadProof },
   { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
 ];
 
 const adminNavigationItems = [
   { title: "Admin Dashboard", url: createPageUrl("admin-dashboard"), icon: LayoutDashboard, component: AdminDashboard },
+  { title: "Assign Collections", url: createPageUrl("assign-collection"), icon: Truck, component: AssignCollection },
   { title: "Create Batch", url: createPageUrl("create-batch"), icon: Package, component: CreateBatch },
   { title: "Donation Requests", url: createPageUrl("donation-requests"), icon: ListChecks, component: DonationRequests },
   { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
@@ -103,6 +107,9 @@ export default function Layout() {
     }
   }
 
+  // Determine if we are on the home page for transparency
+  const isHomePage = location.pathname === "/" || location.pathname === "/home";
+
   return (
     <div className={`min-h-screen w-full ${showSidebar ? 'flex' : ''} bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300`}>
       <LogoutModal
@@ -112,7 +119,7 @@ export default function Layout() {
       />
       <div className={`${!showSidebar ? 'bg-zinc-50 dark:bg-zinc-950' : ''} absolute inset-0 -z-10 transition-colors duration-300`} />
       {showSidebar ? (
-        <Sidebar className="border-r border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm flex flex-col min-h-screen transition-colors duration-300">
+        <Sidebar className="border-r border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md flex flex-col min-h-screen transition-colors duration-300">
           <div className="p-6">
             <div className="flex items-center justify-center gap-3">
               <img src={logoSrc} alt="Say Whatt Logo" className="h-32 w-auto object-contain" />
@@ -129,7 +136,7 @@ export default function Layout() {
                     <div key={item.title}>
                       <Link to={item.url} className={`mb-1 transition-all duration-200 rounded-xl flex items-center gap-3 px-4 py-3 ${(location.pathname === item.url || (location.pathname === '/' && item.url === '/home'))
                         ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-md border border-zinc-200 dark:border-zinc-700'
-                        : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100'
+                        : 'text-zinc-500 dark:text-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100'
                         }`}>
                         <item.icon className="w-5 h-5" />
                         <span className="font-medium">{item.title}</span>
@@ -143,10 +150,14 @@ export default function Layout() {
           </div>
         </Sidebar>
       ) : (
-        <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors duration-300">
+
+        <header className={`w-full z-50 transition-colors duration-300 ${isHomePage
+            ? "absolute top-0 bg-transparent border-transparent"
+            : "sticky top-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800"
+          }`}>
           <div className="container mx-auto px-6 py-3 flex justify-between items-center">
             {/* Hide logo on home page as it is displayed in the hero section */}
-            {(location.pathname !== "/" && location.pathname !== "/home") ? (
+            {!isHomePage ? (
               <Link to={createPageUrl("home")} className="flex items-center gap-3">
                 <img src={logoSrc} alt="Say Whatt Logo" className="h-10 w-auto object-contain" />
               </Link>
@@ -156,13 +167,13 @@ export default function Layout() {
             <div className="flex items-center gap-4">
               {user && <NotificationDropdown align="right" />}
               <ThemeToggle />
-              {(location.pathname === "/" || location.pathname === "/home") && (
+              {isHomePage && (
                 <>
                   <Link to="/login">
-                    <Button variant="outline" className="font-semibold px-4 py-2 text-md border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white bg-transparent">Login</Button>
+                    <Button variant="outline" className="font-semibold px-4 py-2 text-md border-white/30 text-white hover:bg-white/20 hover:text-white bg-transparent backdrop-blur-sm">Login</Button>
                   </Link>
                   <Link to="/signup">
-                    <Button className="font-semibold bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 px-4 py-2 text-md">Sign Up</Button>
+                    <Button className="font-semibold bg-white text-black hover:bg-zinc-200 px-4 py-2 text-md shadow-lg">Sign Up</Button>
                   </Link>
                 </>
               )}
@@ -215,6 +226,6 @@ export default function Layout() {
           <Footer />
         </div>
       </main>
-    </div>
+    </div >
   );
 }

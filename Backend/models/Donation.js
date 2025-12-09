@@ -30,6 +30,16 @@ const DonationSchema = new mongoose.Schema({
     scheduled_delivery: Date,
     actual_delivery: Date,
     proof_sent: { type: Boolean, default: false },
+    address: String, // Pickup address provided by donor
+    assigned_staff: [{ // Staff assigned to collect/process this donation
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    collection_status: {
+        type: String,
+        enum: ['pending', 'assigned', 'collected'],
+        default: 'pending'
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Donation', DonationSchema);

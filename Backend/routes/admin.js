@@ -222,7 +222,36 @@ router.get('/available-items', [auth, adminAuth], async (req, res) => {
 // @access  Private (Admin only)
 router.get('/batch-staff', [auth, adminAuth], async (req, res) => {
     try {
-        const staff = await User.find({ role: 'Batch staff' }).select('name email _id');
+        const { date } = req.query;
+        let excludeStaffIds = [];
+
+        if (date) {
+            const deliveryTime = new Date(date);
+            // Define conflict window: +/- 1 hour
+            // 60 * 60 * 1000 = 3600000 ms
+            const startTime = new Date(deliveryTime.getTime() - 3600000);
+            const endTime = new Date(deliveryTime.getTime() + 3600000);
+
+            // Find conflicting donations
+            const conflicts = await Donation.find({
+                collection_status: 'assigned',
+                scheduled_delivery: { $gte: startTime, $lte: endTime }
+            });
+
+            // Collect IDs of staff already assigned
+            conflicts.forEach(donation => {
+                if (donation.assigned_staff && donation.assigned_staff.length > 0) {
+                    excludeStaffIds = excludeStaffIds.concat(donation.assigned_staff);
+                }
+            });
+        }
+
+        const query = { role: 'Batch staff' };
+        if (excludeStaffIds.length > 0) {
+            query._id = { $nin: excludeStaffIds };
+        }
+
+        const staff = await User.find(query).select('name email _id');
         res.json(staff);
     } catch (err) {
         console.error(err.message);
@@ -290,6 +319,57 @@ router.post('/create-batch', [auth, adminAuth], async (req, res) => {
 
         res.json(newBatch);
 
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   GET /api/admin/collections/pending
+// @desc    Get donations pending collection assignment
+// @access  Private (Admin)
+router.get('/collections/pending', auth, adminAuth, async (req, res) => {
+    try {
+        const donations = await Donation.find({
+            status: { $in: ['pending', 'confirmed'] },
+            donation_type: 'garments', // Filter for garments only
+            $or: [
+                { collection_status: 'pending' },
+                { collection_status: { $exists: false } }
+            ]
+        }).populate('donor', 'name email').sort({ createdAt: -1 });
+        res.json(donations);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   POST /api/admin/collections/:id/assign
+// @desc    Assign staff to a donation collection
+// @access  Private (Admin)
+router.post('/collections/:id/assign', auth, adminAuth, async (req, res) => {
+    const { staffIds } = req.body;
+    try {
+        const donation = await Donation.findById(req.params.id);
+        if (!donation) {
+            return res.status(404).json({ msg: 'Donation not found' });
+        }
+
+        donation.assigned_staff = staffIds;
+        donation.collection_status = 'assigned';
+        await donation.save();
+
+        // Notify Assigned Staff
+        for (const staffId of staffIds) {
+            await Notification.create({
+                recipient: staffId,
+                message: `You have been assigned a new collection pickup (Donation #${donation.donationId || donation._id}). Check your Assigned Collections.`,
+                type: 'info'
+            });
+        }
+
+        res.json(donation);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
