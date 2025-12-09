@@ -6,6 +6,7 @@ import Layout from './Layout';
 import './index.css';
 import { AuthProvider } from './context/authContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 
 const queryClient = new QueryClient();
 
@@ -15,7 +16,9 @@ root.render(
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <Layout />
+          <ToastProvider>
+            <Layout />
+          </ToastProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

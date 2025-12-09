@@ -11,11 +11,13 @@ import { Label } from "../Components/ui/label";
 import { Textarea } from "../Components/ui/textarea";
 import { Select, SelectItem } from "../Components/ui/select";
 import { Plus, Trash2, Gift, Loader2 } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 export default function CreateDonation() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
+  const { addToast } = useToast();
 
   const [formData, setFormData] = useState({
     donation_type: "garments",
@@ -37,7 +39,7 @@ export default function CreateDonation() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['donorDashboard'] });
       setFeedback({ type: 'success', message: 'Donation created successfully!' });
-      try { alert('Donation created successfully!'); } catch (_) { }
+      try { addToast('Donation created successfully!', 'success'); } catch (_) { }
       setTimeout(() => {
         setFeedback({ type: '', message: '' });
         navigate(createPageUrl("DonorDashboard"), {

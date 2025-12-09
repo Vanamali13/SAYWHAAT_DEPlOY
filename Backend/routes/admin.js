@@ -222,7 +222,36 @@ router.get('/available-items', [auth, adminAuth], async (req, res) => {
 // @access  Private (Admin only)
 router.get('/batch-staff', [auth, adminAuth], async (req, res) => {
     try {
-        const staff = await User.find({ role: 'Batch staff' }).select('name email _id');
+        const { date } = req.query;
+        let excludeStaffIds = [];
+
+        if (date) {
+            const deliveryTime = new Date(date);
+            // Define conflict window: +/- 1 hour
+            // 60 * 60 * 1000 = 3600000 ms
+            const startTime = new Date(deliveryTime.getTime() - 3600000);
+            const endTime = new Date(deliveryTime.getTime() + 3600000);
+
+            // Find conflicting donations
+            const conflicts = await Donation.find({
+                collection_status: 'assigned',
+                scheduled_delivery: { $gte: startTime, $lte: endTime }
+            });
+
+            // Collect IDs of staff already assigned
+            conflicts.forEach(donation => {
+                if (donation.assigned_staff && donation.assigned_staff.length > 0) {
+                    excludeStaffIds = excludeStaffIds.concat(donation.assigned_staff);
+                }
+            });
+        }
+
+        const query = { role: 'Batch staff' };
+        if (excludeStaffIds.length > 0) {
+            query._id = { $nin: excludeStaffIds };
+        }
+
+        const staff = await User.find(query).select('name email _id');
         res.json(staff);
     } catch (err) {
         console.error(err.message);

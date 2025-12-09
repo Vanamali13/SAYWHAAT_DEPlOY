@@ -9,8 +9,11 @@ import { Checkbox } from "../Components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../Components/ui/tabs";
 import { Loader2, Truck, Calendar, MapPin, User, CheckCircle } from "lucide-react";
 
+import { useToast } from "../context/ToastContext";
+
 export default function AssignCollection() {
     const queryClient = useQueryClient();
+    const { addToast } = useToast();
     const [selectedStaff, setSelectedStaff] = useState([]);
     const [selectedDonation, setSelectedDonation] = useState(null);
 
@@ -24,12 +27,16 @@ export default function AssignCollection() {
 
     // Fetch Batch Staff
     const { data: batchStaff, isLoading: staffLoading } = useQuery({
-        queryKey: ['batchStaff'],
+        queryKey: ['batchStaff', selectedDonation?.scheduled_delivery],
         queryFn: async () => {
-            // Assuming current logic reuses batch staff endpoint, we might need a dedicated one or filter users
-            const { data } = await apiClient.get('/admin/batch-staff');
+            let url = '/admin/batch-staff';
+            if (selectedDonation?.scheduled_delivery) {
+                url += `?date=${encodeURIComponent(selectedDonation.scheduled_delivery)}`;
+            }
+            const { data } = await apiClient.get(url);
             return data;
-        }
+        },
+        enabled: !!selectedDonation
     });
 
     const assignMutation = useMutation({
@@ -38,13 +45,13 @@ export default function AssignCollection() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['pendingCollections'] });
-            alert("Collection assigned successfully!");
+            addToast("Collection assigned successfully!", "success");
             setSelectedDonation(null);
             setSelectedStaff([]);
         },
         onError: (err) => {
             console.error(err);
-            alert("Failed to assign collection.");
+            addToast("Failed to assign collection.", "error");
         }
     });
 

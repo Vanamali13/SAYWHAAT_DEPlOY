@@ -10,9 +10,12 @@ import { Users, MapPin, Loader2, CheckCircle, AlertTriangle } from "lucide-react
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils/utils";
 
+import { useToast } from "../context/ToastContext";
+
 export default function RegisterReceiver() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
     fullName: "",
     phoneNumber: "",
@@ -40,9 +43,9 @@ export default function RegisterReceiver() {
       }, 2000);
     },
     onError: (error) => {
-        const errorMessage = error.response?.data?.error || "An unexpected error occurred.";
-        setError(errorMessage);
-        setSuccess(false);
+      const errorMessage = error.response?.data?.error || "An unexpected error occurred.";
+      setError(errorMessage);
+      setSuccess(false);
     }
   });
 
@@ -58,12 +61,12 @@ export default function RegisterReceiver() {
           setGettingLocation(false);
         },
         (error) => {
-          alert("Unable to get location. Please enable location services.");
+          addToast("Unable to get location. Please enable location services.", "error");
           setGettingLocation(false);
         }
       );
     } else {
-      alert("Geolocation is not supported by your browser");
+      addToast("Geolocation is not supported by your browser", "error");
       setGettingLocation(false);
     }
   };
