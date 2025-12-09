@@ -18,19 +18,21 @@ export default function Home() {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const carouselImages = [
-    '/assets/carousel/slide1.jpg',
-    '/assets/carousel/slide2.jpg',
-    '/assets/carousel/slide3.png',
-    '/assets/carousel/slide4.png',
-    '/assets/carousel/slide5.jpg'
+    '/assets/carousel/video.mp4'
   ];
 
+  /* Safe access to current image */
+  const currentMedia = carouselImages[currentImageIndex] || carouselImages[0];
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    // Only set up timer if we have multiple images
+    if (carouselImages.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [carouselImages.length]);
 
   useEffect(() => {
     async function fetchStats() {
@@ -89,22 +91,27 @@ export default function Home() {
               transition={{ duration: 1.5 }}
               className="absolute inset-0"
             >
-              {/* Blurred Background Layer - Fills the screen */}
-              <div
-                className="absolute inset-0 bg-cover bg-center blur-3xl opacity-60 scale-110"
-                style={{ backgroundImage: `url(${carouselImages[currentImageIndex]})` }}
-              />
-
-              {/* Main Image Layer - Fully visible without cropping */}
-              <img
-                src={carouselImages[currentImageIndex]}
-                className="absolute inset-0 w-full h-full object-contain z-10"
-                alt="Background"
-              />
+              {(currentMedia && (currentMedia.endsWith('.mp4') || currentMedia.endsWith('.webm'))) ? (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                >
+                  <source src={currentMedia} type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  src={currentMedia}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  alt="Background"
+                />
+              )}
             </motion.div>
           </AnimatePresence>
           {/* Dark Overlay for readability - placed above images */}
-          <div className="absolute inset-0 bg-black/50 z-20" />
+          <div className="absolute inset-0 bg-black/40 z-20" />
         </div>
 
         {/* Content */}
@@ -127,7 +134,7 @@ export default function Home() {
             </div>
 
             <div className="inline-block">
-              <Badge variant="outline" className="bg-white/10 text-white border-white/20 backdrop-blur-md px-6 py-2 text-sm font-medium">
+              <Badge variant="outline" className="!bg-black/20 !text-white !border-white/30 backdrop-blur-md px-6 py-2 text-sm font-medium shadow-sm">
                 Transparent • Verified • Trustworthy
               </Badge>
             </div>
