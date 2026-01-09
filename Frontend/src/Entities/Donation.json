@@ -1,0 +1,87 @@
+{
+  "name": "Donation",
+  "type": "object",
+  "properties": {
+    "donor_email": {
+      "type": "string",
+      "description": "Email of the donor"
+    },
+    "donor_id": {
+      "type": "string",
+      "description": "Unique donor tracking ID"
+    },
+    "receiver_id": {
+      "type": "string",
+      "description": "ID of the receiver"
+    },
+    "donation_type": {
+      "type": "string",
+      "enum": [
+        "funds",
+        "food",
+        "clothes",
+        "accessories",
+        "mixed"
+      ],
+      "description": "Type of donation"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Monetary value of donation"
+    },
+    "items": {
+      "type": "array",
+      "description": "List of items donated",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_transit",
+        "delivered",
+        "confirmed"
+      ],
+      "default": "pending",
+      "description": "Current status of donation"
+    },
+    "delivery_notes": {
+      "type": "string",
+      "description": "Additional notes about delivery"
+    },
+    "scheduled_delivery": {
+      "type": "string",
+      "format": "date",
+      "description": "Scheduled delivery date"
+    },
+    "actual_delivery": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Actual delivery date and time"
+    },
+    "proof_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether proof email was sent to donor"
+    }
+  },
+  "required": [
+    "donor_email",
+    "donor_id",
+    "receiver_id",
+    "donation_type"
+  ]
+}

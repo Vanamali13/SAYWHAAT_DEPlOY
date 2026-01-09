@@ -1,0 +1,55 @@
+{
+  "name": "Receiver",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Receiver's full name"
+    },
+    "phone_number": {
+      "type": "string",
+      "description": "Receiver's phone number"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Receiver's email address"
+    },
+    "address": {
+      "type": "string",
+      "description": "Complete address of receiver"
+    },
+    "location_lat": {
+      "type": "number",
+      "description": "Latitude of receiver location"
+    },
+    "location_lng": {
+      "type": "number",
+      "description": "Longitude of receiver location"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Verification status of receiver"
+    },
+    "family_size": {
+      "type": "number",
+      "description": "Number of family members"
+    },
+    "needs_description": {
+      "type": "string",
+      "description": "Description of current needs"
+    }
+  },
+  "required": [
+    "full_name",
+    "phone_number",
+    "email",
+    "address"
+  ]
+}

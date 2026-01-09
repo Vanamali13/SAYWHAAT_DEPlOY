@@ -1,0 +1,32 @@
+{
+  "name": "Donor",
+  "type": "object",
+  "properties": {
+    "phone_number": {
+      "type": "string",
+      "description": "Donor's phone number"
+    },
+    "donor_id": {
+      "type": "string",
+      "description": "Unique donor tracking ID (auto-generated)"
+    },
+    "total_donations": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of donations made"
+    },
+    "total_amount_donated": {
+      "type": "number",
+      "default": 0,
+      "description": "Total monetary value donated"
+    },
+    "profile_image": {
+      "type": "string",
+      "description": "Donor profile image URL"
+    }
+  },
+  "required": [
+    "phone_number",
+    "donor_id"
+  ]
+}

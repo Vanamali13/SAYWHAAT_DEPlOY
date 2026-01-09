@@ -1,0 +1,408 @@
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import apiClient from "../api/apiClient";
+import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
+import { Badge } from "../Components/ui/badge";
+import { Button } from "../Components/ui/button";
+import { Input } from "../Components/ui/input";
+import { Label } from "../Components/ui/label";
+import { Textarea } from "../Components/ui/textarea";
+import { Progress } from "../Components/ui/progress";
+import { Medal, Trophy, Loader2, Users, DollarSign, Plus, X } from "lucide-react";
+
+export default function Pools() {
+    const queryClient = useQueryClient();
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [selectedPoolId, setSelectedPoolId] = useState(null);
+    const [newPool, setNewPool] = useState({ title: "", description: "", target_amount: "" });
+
+    const { data: pools, isLoading, isError } = useQuery({
+        queryKey: ['pools'],
+        queryFn: async () => {
+            const { data } = await apiClient.get('/pools');
+            return data;
+        },
+    });
+
+    const { data: poolDetails, isLoading: isLoadingDetails, error: detailsError } = useQuery({
+        queryKey: ['poolDetails', selectedPoolId],
+        queryFn: async () => {
+            if (!selectedPoolId) return null;
+            try {
+                const { data } = await apiClient.get(`/pools/${selectedPoolId}/details`);
+                return data;
+            } catch (err) {
+                console.error("Failed to fetch pool details:", err);
+                throw err;
+            }
+        },
+        enabled: !!selectedPoolId,
+        retry: 1
+    });
+
+    const createPoolMutation = useMutation({
+        mutationFn: (poolData) => apiClient.post('/pools', poolData),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['pools'] });
+            setIsCreateOpen(false);
+            setNewPool({ title: "", description: "", target_amount: "" });
+        },
+    });
+
+    const handleCreatePool = (e) => {
+        e.preventDefault();
+        createPoolMutation.mutate({
+            ...newPool,
+            target_amount: newPool.target_amount ? parseFloat(newPool.target_amount) : undefined
+        });
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen p-6 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+                <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+            </div>
+        );
+    }
+
+    if (isError) {
+        return <div className="min-h-screen p-6 bg-zinc-50 dark:bg-zinc-950 text-red-500 flex items-center justify-center">Failed to load pools.</div>;
+    }
+
+
+
+    return (
+        <div className="min-h-screen p-6 lg:p-8 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 relative transition-colors duration-300">
+            <div className="max-w-7xl mx-auto space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-900">
+                    <div>
+                        <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                            Donation Pools
+                        </h1>
+                        <p className="text-zinc-500 dark:text-zinc-400 mt-2">
+                            Manage and track collective donation efforts
+                        </p>
+                    </div>
+
+                    <Button onClick={() => setIsCreateOpen(true)} className="bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200">
+                        <Plus className="w-4 h-4 mr-2" /> Create Pool
+                    </Button>
+                </div>
+
+                {/* Custom Modal */}
+                {isCreateOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-sm p-4">
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl w-full max-w-md p-6 relative animate-in fade-in zoom-in duration-200">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-4 top-4 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                                onClick={() => setIsCreateOpen(false)}
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+
+                            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">Create New Pool</h2>
+
+                            <form onSubmit={handleCreatePool} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="title" className="text-zinc-700 dark:text-zinc-300">Pool Title</Label>
+                                    <Input
+                                        id="title"
+                                        value={newPool.title}
+                                        onChange={e => setNewPool({ ...newPool, title: e.target.value })}
+                                        className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="description" className="text-zinc-700 dark:text-zinc-300">Description</Label>
+                                    <Textarea
+                                        id="description"
+                                        value={newPool.description}
+                                        onChange={e => setNewPool({ ...newPool, description: e.target.value })}
+                                        className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="target" className="text-zinc-700 dark:text-zinc-300">Target Amount ($)</Label>
+                                    <Input
+                                        id="target"
+                                        type="number"
+                                        value={newPool.target_amount}
+                                        onChange={e => setNewPool({ ...newPool, target_amount: e.target.value })}
+                                        className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+                                    />
+                                </div>
+                                <div className="flex justify-end gap-3 mt-6">
+                                    <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white">
+                                        Cancel
+                                    </Button>
+                                    <Button type="submit" className="bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200" disabled={createPoolMutation.isLoading}>
+                                        {createPoolMutation.isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Pool"}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Pool Details Modal */}
+                {selectedPoolId && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-sm p-4">
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-4 top-4 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                                onClick={() => setSelectedPoolId(null)}
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+
+                            {isLoadingDetails ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+                                </div>
+                            ) : poolDetails ? (
+                                <div className="space-y-6">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">{poolDetails.pool.title}</h2>
+                                        <p className="text-zinc-500 dark:text-zinc-400 mt-1">{poolDetails.pool.description}</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-zinc-50 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                        <div>
+                                            <p className="text-sm text-zinc-500">Total Collected</p>
+                                            <p className="text-xl font-bold text-zinc-900 dark:text-white">${poolDetails.pool.current_amount?.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-zinc-500">Target Amount</p>
+                                            <p className="text-xl font-bold text-zinc-900 dark:text-white">${poolDetails.pool.target_amount?.toLocaleString()}</p>
+                                        </div>
+                                        <div className="col-span-2 space-y-2">
+                                            <div className="flex justify-between text-xs text-zinc-500">
+                                                <span>Progress</span>
+                                                <span>{Math.round((poolDetails.pool.current_amount / poolDetails.pool.target_amount) * 100)}%</span>
+                                            </div>
+                                            <Progress value={(poolDetails.pool.current_amount / poolDetails.pool.target_amount) * 100} className="h-2" />
+                                        </div>
+                                    </div>
+
+                                    {/* Top Donors */}
+                                    {poolDetails.donors.length > 0 && (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {poolDetails.donors.slice(0, 2).map((donor, index) => (
+                                                <div key={donor.donor._id} className={`p-4 rounded-lg border flex items-center gap-3 ${index === 0 ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700' : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700'}`}>
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${index === 0 ? 'bg-yellow-100 text-yellow-600' : 'bg-zinc-200 text-zinc-600'}`}>
+                                                        {index === 0 ? <Trophy className="w-5 h-5" /> : <Medal className="w-5 h-5" />}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="font-semibold text-zinc-900 dark:text-white truncate">{donor.donor.name}</p>
+                                                        <p className="text-sm text-zinc-500">${donor.totalAmount.toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Donors List */}
+                                    <div>
+                                        <h3 className="font-semibold text-lg text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <Users className="w-5 h-5" /> Donors List
+                                        </h3>
+                                        <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                                            {poolDetails.donors.map((donor) => (
+                                                <div key={donor.donor._id} className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 font-medium text-xs">
+                                                            {donor.donor.name.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-sm text-zinc-900 dark:text-white">{donor.donor.name}</p>
+                                                            <p className="text-xs text-zinc-500">{donor.donor.email}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-semibold text-sm text-zinc-900 dark:text-white">${donor.totalAmount.toLocaleString()}</p>
+                                                        <p className="text-xs text-zinc-500">{donor.percentage.toFixed(1)}%</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {poolDetails.donors.length === 0 && (
+                                                <p className="text-center text-zinc-500 py-4">No donors yet.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-red-500">
+                                    <p>Failed to load details.</p>
+                                    <p className="text-xs mt-2 text-zinc-400">{detailsError?.message || "Unknown error"}</p>
+                                    {detailsError?.response?.data?.message && (
+                                        <p className="text-xs mt-1 text-zinc-400">Server: {detailsError.response.data.message}</p>
+                                    )}
+                                    {detailsError?.response?.status && (
+                                        <p className="text-xs mt-1 text-zinc-400">Status: {detailsError.response.status}</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+
+
+                {/* Pools List */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {pools?.map((pool) => (
+                        <Card
+                            key={pool._id}
+                            className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md cursor-pointer"
+                            onClick={() => setSelectedPoolId(pool._id)}
+                        >
+                            <CardHeader className="pb-3">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-semibold text-lg text-zinc-900 dark:text-white">{pool.title}</h3>
+                                        <p className="text-xs text-zinc-500 mt-1 font-mono">{pool.poolId}</p>
+                                    </div>
+                                    <Badge variant="outline" className={pool.status === 'active' ? 'text-green-600 dark:text-green-400 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/20' : 'text-zinc-500 dark:text-zinc-400 border-zinc-300 dark:border-zinc-700'}>
+                                        {pool.status}
+                                    </Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">{pool.description || "No description provided."}</p>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-xs text-zinc-500">
+                                        <span>Progress</span>
+                                        <span>{pool.target_amount ? Math.round((pool.current_amount / pool.target_amount) * 100) : 0}%</span>
+                                    </div>
+                                    <Progress value={pool.target_amount ? (pool.current_amount / pool.target_amount) * 100 : 0} className="h-2" />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 pt-2">
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-zinc-500 flex items-center gap-1">
+                                            <DollarSign className="w-3 h-3" /> Collected
+                                        </p>
+                                        <p className="text-lg font-semibold text-zinc-900 dark:text-white">${pool.current_amount?.toLocaleString() || 0}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-zinc-500 flex items-center gap-1">
+                                            <Users className="w-3 h-3" /> Members
+                                        </p>
+                                        <p className="text-lg font-semibold text-zinc-900 dark:text-white">{pool.members?.length || 0}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+
+                    {pools?.length === 0 && (
+                        <div className="col-span-full text-center py-12 text-zinc-500 border border-dashed border-zinc-300 dark:border-zinc-800 rounded-xl">
+                            No pools found. Create one to get started.
+                        </div>
+                    )}
+
+                    {/* Pool Details Modal */}
+                    {selectedPoolId && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-sm p-4">
+                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-4 top-4 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                                    onClick={() => setSelectedPoolId(null)}
+                                >
+                                    <X className="w-4 h-4" />
+                                </Button>
+
+                                {isLoadingDetails ? (
+                                    <div className="flex justify-center py-12">
+                                        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+                                    </div>
+                                ) : poolDetails ? (
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">{poolDetails.pool.title}</h2>
+                                            <p className="text-zinc-500 dark:text-zinc-400 mt-1">{poolDetails.pool.description}</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-zinc-50 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                            <div>
+                                                <p className="text-sm text-zinc-500">Total Collected</p>
+                                                <p className="text-xl font-bold text-zinc-900 dark:text-white">${poolDetails.pool.current_amount?.toLocaleString()}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-zinc-500">Target Amount</p>
+                                                <p className="text-xl font-bold text-zinc-900 dark:text-white">${poolDetails.pool.target_amount?.toLocaleString()}</p>
+                                            </div>
+                                            <div className="col-span-2 space-y-2">
+                                                <div className="flex justify-between text-xs text-zinc-500">
+                                                    <span>Progress</span>
+                                                    <span>{Math.round((poolDetails.pool.current_amount / poolDetails.pool.target_amount) * 100)}%</span>
+                                                </div>
+                                                <Progress value={(poolDetails.pool.current_amount / poolDetails.pool.target_amount) * 100} className="h-2" />
+                                            </div>
+                                        </div>
+
+                                        {/* Top Donors */}
+                                        {poolDetails.donors.length > 0 && (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {poolDetails.donors.slice(0, 2).map((donor, index) => (
+                                                    <div key={donor.donor._id} className={`p-4 rounded-lg border flex items-center gap-3 ${index === 0 ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700' : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700'}`}>
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${index === 0 ? 'bg-yellow-100 text-yellow-600' : 'bg-zinc-200 text-zinc-600'}`}>
+                                                            {index === 0 ? <Trophy className="w-5 h-5" /> : <Medal className="w-5 h-5" />}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="font-semibold text-zinc-900 dark:text-white truncate">{donor.donor.name}</p>
+                                                            <p className="text-sm text-zinc-500">${donor.totalAmount.toLocaleString()}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Donors List */}
+                                        <div>
+                                            <h3 className="font-semibold text-lg text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
+                                                <Users className="w-5 h-5" /> Donors List
+                                            </h3>
+                                            <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                                                {poolDetails.donors.map((donor) => (
+                                                    <div key={donor.donor._id} className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 font-medium text-xs">
+                                                                {donor.donor.name.charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-sm text-zinc-900 dark:text-white">{donor.donor.name}</p>
+                                                                <p className="text-xs text-zinc-500">{donor.donor.email}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-semibold text-sm text-zinc-900 dark:text-white">${donor.totalAmount.toLocaleString()}</p>
+                                                            <p className="text-xs text-zinc-500">{donor.percentage.toFixed(1)}%</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {poolDetails.donors.length === 0 && (
+                                                    <p className="text-center text-zinc-500 py-4">No donors yet.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12 text-red-500">Failed to load details.</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

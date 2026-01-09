@@ -1,0 +1,312 @@
+import React, { useContext, useEffect } from "react";
+import { Link, useLocation, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { createPageUrl } from "./utils/utils";
+import { Heart, Gift, Users, Upload, LayoutDashboard, ListChecks, LogOut, History, Layers, Truck, User, Package, Menu, X } from "lucide-react";
+import { Sidebar } from "./Components/ui/sidebar";
+import Footer from "./Components/Footer";
+import HomePage from "./Pages/home";
+import AdminDashboard from "./Pages/AdminDashboard";
+import DonorDashboard from "./Pages/DonorDashboard";
+import BatchStaffDashboard from "./Pages/BatchStaffDashboard";
+import DonorsList from "./Pages/DonorsList";
+import BatchStaffList from "./Pages/BatchStaffList";
+import CreateDonation from "./Pages/CreateDonation";
+import CreateBatch from "./Pages/CreateBatch";
+import AssignedBatches from "./Pages/AssignedBatches";
+import RegisterReceiver from "./Pages/RegisterReceiver";
+import UploadProof from "./Pages/UploadProof";
+import DonationDetails from "./Pages/DonationDetails";
+import Login from "./Pages/Login";
+import SignUp from "./Pages/SignUp";
+import Profile from "./Pages/Profile";
+import Payment from "./Pages/Payment";
+import DonorDetailsAdmin from "./Pages/DonorDetailsAdmin";
+import StaffDetailsAdmin from "./Pages/StaffDetailsAdmin";
+import { AuthContext } from "./context/authContext";
+import { ThemeContext } from "./context/ThemeContext";
+import DonationRequests from "./Pages/DonationRequests";
+import DonationHistory from "./Pages/DonationHistory";
+import Pools from "./Pages/Pools";
+import ThemeToggle from "./Components/ui/ThemeToggle";
+import NotificationDropdown from "./Components/ui/NotificationDropdown";
+
+import { Button } from "./Components/ui/button";
+
+
+import LogoutModal from "./Components/LogoutModal";
+import MandatoryUpdateModal from "./Components/MandatoryUpdateModal";
+
+const donorNavigationItems = [
+  { title: "Donor Dashboard", url: createPageUrl("donordashboard"), icon: LayoutDashboard, component: DonorDashboard },
+  { title: "Create Donation", url: createPageUrl("createdonation"), icon: Gift, component: CreateDonation },
+  { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
+  { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
+];
+
+const batchStaffNavigationItems = [
+  { title: "Batch Staff Dashboard", url: createPageUrl("batch-staff-dashboard"), icon: LayoutDashboard, component: BatchStaffDashboard },
+  { title: "Assigned Batches", url: createPageUrl("assigned-batches"), icon: Package, component: AssignedBatches },
+  { title: "Upload Proof", url: createPageUrl("uploadproof"), icon: Upload, component: UploadProof },
+  { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
+];
+
+const adminNavigationItems = [
+  { title: "Admin Dashboard", url: createPageUrl("admin-dashboard"), icon: LayoutDashboard, component: AdminDashboard },
+  { title: "Create Batch", url: createPageUrl("create-batch"), icon: Package, component: CreateBatch },
+  { title: "Donation Requests", url: createPageUrl("donation-requests"), icon: ListChecks, component: DonationRequests },
+  { title: "Donation History", url: createPageUrl("donation-history"), icon: History, component: DonationHistory },
+  { title: "Pools", url: createPageUrl("pools"), icon: Layers, component: Pools },
+  { title: "Donors List", url: createPageUrl("donorslist"), icon: Users, component: DonorsList },
+  { title: "Batch Staff List", url: createPageUrl("batchstafflist"), icon: Truck, component: BatchStaffList },
+  { title: "Profile", url: createPageUrl("profile"), icon: User, component: Profile },
+];
+
+export default function Layout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+  const [showMandatoryModal, setShowMandatoryModal] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const logoSrc = theme === 'dark' ? '/assets/images/logo-dark.png' : '/assets/images/logo-light.png';
+
+  useEffect(() => {
+    // Check for mandatory updates
+    if (user) {
+      // If user is logged in, check if they have both email and phone verified
+      const needsEmail = !user.email || !user.isEmailVerified;
+      const needsPhone = !user.phone_number || !user.isPhoneVerified;
+
+      // Only enforce if they are missing one of them. 
+      // Note: New schema implies they might sign up with one. 
+      // Trigger if: (Has Email AND (!Phone OR !PhoneVerified)) OR (Has Phone AND (!Email OR !EmailVerified))
+      // Simplest: Check if BOTH are present and verified.
+
+      if (needsEmail || needsPhone) {
+        setShowMandatoryModal(true);
+      } else {
+        setShowMandatoryModal(false);
+      }
+    } else {
+      setShowMandatoryModal(false);
+    }
+  }, [user, location.pathname]); // Re-check on nav, though user obj change is main trigger
+
+  useEffect(() => {
+    const authPages = ['/login', '/signup'];
+    if (user && authPages.includes(location.pathname)) {
+      const role = user.role;
+      if (role === 'Administrator') {
+        navigate('/admin-dashboard');
+      } else if (role === 'Batch staff') {
+        navigate('/batch-staff-dashboard');
+      } else {
+        navigate('/donordashboard');
+      }
+    }
+  }, [user, navigate, location.pathname]);
+
+  const handleLogoutConfirm = () => {
+    logout();
+    setIsLogoutModalOpen(false);
+    navigate('/home');
+  };
+
+  // Determine if the sidebar should be shown based on the current route
+  const noSidebarRoutes = ["/home", "/", "/login", "/signup"];
+  const showSidebar = user && !noSidebarRoutes.includes(location.pathname);
+
+  // Determine which navigation items to show based on user role
+  let sidebarItems = [];
+  if (user) {
+    if (user.role === 'Administrator') {
+      sidebarItems = adminNavigationItems;
+    } else if (user.role === 'Batch staff') {
+      sidebarItems = batchStaffNavigationItems;
+    } else if (user.role === 'Donor') {
+      sidebarItems = donorNavigationItems;
+    }
+  }
+
+  // Determine if we are on the home page for transparency
+  const isHomePage = location.pathname === "/" || location.pathname === "/home";
+
+  return (
+    <div className={`min-h-screen w-full ${showSidebar ? 'flex' : ''} bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300`}>
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
+      {showMandatoryModal && user && (
+        <MandatoryUpdateModal
+          user={user}
+          onComplete={() => window.location.reload()}
+        />
+      )}
+      <div className={`${!showSidebar ? 'bg-zinc-50 dark:bg-zinc-950' : ''} absolute inset-0 -z-10 transition-colors duration-300`} />
+      {showSidebar ? (
+        <>
+          {/* Desktop Sidebar */}
+          <Sidebar className="hidden md:flex border-r border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md flex-col min-h-screen transition-colors duration-300 w-64 fixed left-0 top-0 bottom-0 z-40">
+
+            <div className="p-6">
+              <div className="flex items-center justify-center gap-3">
+                <img src={logoSrc} alt="Say Whatt Logo" className="h-32 w-auto object-contain" />
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="p-3">
+                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase tracking-wider px-3 py-2">
+                  Navigation
+                </p>
+                <div>
+                  <div>
+                    {sidebarItems.map((item) => (
+                      <div key={item.title}>
+                        <Link to={item.url} className={`mb-1 transition-all duration-200 rounded-xl flex items-center gap-3 px-4 py-3 ${(location.pathname === item.url || (location.pathname === '/' && item.url === '/home'))
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-md border border-zinc-200 dark:border-zinc-700'
+                          : 'text-zinc-500 dark:text-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100'
+                          }`}>
+                          <item.icon className="w-5 h-5" />
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </Sidebar>
+
+          {/* Mobile Sidebar Overlay */}
+          {isMobileMenuOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/50 md:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+          )}
+
+          {/* Mobile Sidebar Drawer */}
+          <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+              <img src={logoSrc} alt="Say Whatt Logo" className="h-8 w-auto" />
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto h-[calc(100vh-64px)]">
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-500 uppercase tracking-wider px-3 py-2">
+                Navigation
+              </p>
+              {sidebarItems.map((item) => (
+                <Link
+                  key={item.title}
+                  to={item.url}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`mb-1 transition-all duration-200 rounded-xl flex items-center gap-3 px-4 py-3 ${(location.pathname === item.url || (location.pathname === '/' && item.url === '/home'))
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-md border border-zinc-200 dark:border-zinc-700'
+                    : 'text-zinc-500 dark:text-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100'
+                    }`}>
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-medium">{item.title}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+
+        <header className={`w-full z-50 transition-colors duration-300 ${isHomePage
+          ? "absolute top-0 bg-transparent border-transparent"
+          : "sticky top-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800"
+          }`}>
+          <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+            {/* Hide logo on home page as it is displayed in the hero section */}
+            {!isHomePage ? (
+              <Link to={createPageUrl("home")} className="flex items-center gap-3">
+                <img src={logoSrc} alt="Say Whatt Logo" className="h-10 w-auto object-contain" />
+              </Link>
+            ) : (
+              <div /> // Spacer to keep flex layout working if needed, or just nothing
+            )}
+            <div className="flex items-center gap-4">
+              {user && <NotificationDropdown align="right" />}
+              <ThemeToggle />
+              {isHomePage && (
+                <>
+                  <Link to="/login">
+                    <Button variant="ghost" className="font-semibold px-4 py-2 text-md border border-white/50 text-white hover:bg-white/20 hover:text-white bg-transparent backdrop-blur-sm">Login</Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button variant="ghost" className="font-semibold !bg-white !text-black hover:!bg-zinc-200 px-4 py-2 text-md shadow-lg rounded-md">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </header>
+      )}
+
+      <main className="flex-1 flex flex-col relative">
+        {showSidebar && (
+          <header className={`sticky top-0 z-30 flex ${isMobileMenuOpen ? 'z-30' : 'z-30'} justify-between md:justify-end items-center px-6 py-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 ml-0 md:ml-64 transition-all duration-300`}>
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+                <Menu className="w-5 h-5" />
+              </Button>
+              {/* Show Logo on Mobile Header too if desired, or just menu */}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <NotificationDropdown align="right" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                title="Logout"
+                onClick={() => setIsLogoutModalOpen(true)}
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
+          </header>
+        )}
+        <div className={`flex-1 overflow-auto flex flex-col relative ${showSidebar ? 'ml-0 md:ml-64' : ''} transition-all duration-300`}>
+          <div className="flex-1">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/donordashboard" element={user ? <DonorDashboard /> : <Navigate to="/login" replace />} />
+              <Route path="/admin-dashboard" element={user && user.role === 'Administrator' ? <AdminDashboard /> : <Navigate to="/login" replace />} />
+              <Route path="/donation-requests" element={user && user.role === 'Administrator' ? <DonationRequests /> : <Navigate to="/login" replace />} />
+              <Route path="/donation-history" element={user ? <DonationHistory /> : <Navigate to="/login" replace />} />
+              <Route path="/donorslist" element={user && user.role === 'Administrator' ? <DonorsList /> : <Navigate to="/login" replace />} />
+              <Route path="/admin/donors/:id" element={user && user.role === 'Administrator' ? <DonorDetailsAdmin /> : <Navigate to="/login" replace />} />
+              <Route path="/batchstafflist" element={user && user.role === 'Administrator' ? <BatchStaffList /> : <Navigate to="/login" replace />} />
+              <Route path="/admin/staff/:id" element={user && user.role === 'Administrator' ? <StaffDetailsAdmin /> : <Navigate to="/login" replace />} />
+              <Route path="/batch-staff-dashboard" element={user && user.role === 'Batch staff' ? <BatchStaffDashboard /> : <Navigate to="/login" replace />} />
+              <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/home" element={<HomePage />} />
+              {/* Remove navigationItems.map, use sidebarItems.map instead */}
+              {sidebarItems.map(item => (
+                <Route key={item.url} path={item.url} element={user ? <item.component /> : <Navigate to="/login" replace />} />
+              ))}
+              <Route path="/donations/:id" element={user ? <DonationDetails /> : <Navigate to="/login" replace />} />
+              <Route path="/payment" element={user ? <Payment /> : <Navigate to="/login" replace />} />
+            </Routes>
+          </div>
+          <Footer />
+        </div>
+      </main>
+    </div >
+  );
+}

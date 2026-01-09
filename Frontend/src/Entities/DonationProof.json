@@ -1,0 +1,44 @@
+{
+  "name": "DonationProof",
+  "type": "object",
+  "properties": {
+    "donation_id": {
+      "type": "string",
+      "description": "ID of associated donation"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL of proof image/video"
+    },
+    "proof_type": {
+      "type": "string",
+      "enum": [
+        "photo",
+        "video"
+      ],
+      "description": "Type of proof"
+    },
+    "quality_score": {
+      "type": "number",
+      "description": "AI-analyzed quality score (0-100)"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Email of person who uploaded proof"
+    },
+    "upload_notes": {
+      "type": "string",
+      "description": "Additional notes about the proof"
+    },
+    "is_selected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this proof was selected as best quality"
+    }
+  },
+  "required": [
+    "donation_id",
+    "file_url",
+    "proof_type"
+  ]
+}
