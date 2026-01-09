@@ -2,9 +2,14 @@ import axios from 'axios';
 
 // Create an axios instance
 const apiClient = axios.create({
-  // The proxy in package.json will automatically forward this to http://localhost:5001
-  baseURL: '/api', 
+  // In production (Vercel), we must use the absolute URL from env vars
+  // In development (local), we can fall back to '/api' which uses the package.json proxy
+  baseURL: process.env.REACT_APP_API_URL || '/api',
 });
+
+if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
+  console.warn('WARNING: REACT_APP_API_URL is not set. API calls will default to /api, which may cause 404/405 errors on Vercel if not proxying correctly.');
+}
 
 // Add a request interceptor to include the token in every request
 apiClient.interceptors.request.use(
@@ -20,7 +25,7 @@ apiClient.interceptors.request.use(
         url: `${config.baseURL || ''}${config.url}`,
         data: config.data
       });
-    } catch (_) {}
+    } catch (_) { }
     return config;
   },
   (error) => {
@@ -37,7 +42,7 @@ apiClient.interceptors.response.use(
         status: response.status,
         data: response.data
       });
-    } catch (_) {}
+    } catch (_) { }
     return response;
   },
   (error) => {
@@ -48,7 +53,7 @@ apiClient.interceptors.response.use(
         data: error.response?.data,
         message: error.message
       });
-    } catch (_) {}
+    } catch (_) { }
     return Promise.reject(error);
   }
 );

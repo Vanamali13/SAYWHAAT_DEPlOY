@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import apiClient from "../api/apiClient";
 
 const CurrencyContext = createContext();
 
@@ -28,10 +29,9 @@ export function CurrencyProvider({ children }) {
         const initCurrency = async () => {
             try {
                 // 1. Get User's Country/Currency from IP
-                // Using a free IP API (rate limited, but good for demo)
-                const ipRes = await fetch("https://ipapi.co/json/");
-                if (!ipRes.ok) throw new Error("IP API failed");
-                const ipData = await ipRes.json();
+                // Using backend proxy to avoid CORS and ensure valid response
+                const ipRes = await apiClient.get('/utils/ip');
+                const ipData = ipRes.data;
 
                 const userCurrencyCode = ipData.currency || "USD";
 
